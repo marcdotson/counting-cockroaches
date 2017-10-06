@@ -24,4 +24,23 @@ The [GitHub Flow](https://guides.github.com/introduction/flow/) is straightforwa
 ### Mac OS
 * Download Git for Mac OS at http://git-scm.com/downloads
 
+## Create SSH key pair
+* this is so the GitHub repo will trust changes made by your computer
+* First check that running "file.exists("~/.ssh/id_rsa.pub")" in R returns FALSE. If so, continue.
+* Tell Git your name and email address (the same one as your GitHub account) by typing each of the following lines in the terminal:
 
+git config --global user.name "YOUR FULL NAME"
+
+git config --global user.email "YOUR EMAIL ADDRESS"
+
+* Next go to RStudio preferences, choose the Git/SVN panel, and click “Create RSA key…”:
+* You can go back and click the "View Public Key" button to get see your public key
+* Give GitHub your SSH public key: https://github.com/settings/ssh.
+
+## Create Repo
+* Create a project (dropdown menu found in upper-right hand corner of RStudio)
+* Go to project options, then to the Git/SVN panel. Change the “Version control system” from “None” to “Git”
+* You’ll then be prompted to restart RStudio.
+* You should have a new "Git" pane next to your "Environment" and "History"
+
+## Synchronizing with GitHub
