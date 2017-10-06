@@ -26,7 +26,7 @@ The [GitHub Flow](https://guides.github.com/introduction/flow/) is straightforwa
 
 ## Create SSH key pair
 * this is so the GitHub repo will trust changes made by your computer
-* First check that running "file.exists("~/.ssh/id_rsa.pub")" in R returns FALSE. If so, continue. (if it returns TRUE, then you already have a key that you can use and you can skip down a bullet point to "...RStudio preferences...")
+* First check that running "file.exists("~/.ssh/id_rsa.pub")" in R returns FALSE. If it returns TRUE, then you already have a key that you can use, and you can "View Public Key" instead of "Create RSA Key" in the step following the next.
 * Tell Git your name and email address (the same one as your GitHub account) by typing each of the following lines in the terminal:
 
 git config --global user.name "YOUR FULL NAME"
