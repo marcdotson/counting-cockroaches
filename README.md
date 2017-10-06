@@ -11,4 +11,17 @@ The [GitHub Flow](https://guides.github.com/introduction/flow/) is straightforwa
 * Hadley Wickham's *R Packages* book: http://r-pkgs.had.co.nz/git.html.
 * Happy Git and GitHub for the useR: http://happygitwithr.com.
 
-test
+# Connecting RStudio to GitHub
+## Prerequisites
+* Install/update R & RStudio
+* Install Git (see next section)
+
+## Installing Git
+### Windows
+* Download Git for Windows at https://git-for-windows.github.io/
+* You can accept all the default settings during installation.
+* Note: RStudio for windows likes for git to be in the Files(x86) folder. If not in this location, RStudio may not detect it, and may cause headaches for you later.
+### Mac OS
+* Download Git for Mac OS at http://git-scm.com/downloads
+
+
