@@ -45,3 +45,9 @@ git config --global user.email "YOUR EMAIL ADDRESS"
 * Click "Create Project" (you may be prompted to enter your GitHub username and password)
 * You should now have a "Git" pane next to your "Environment" and "History"
 
+## Now What?
+* You'll notice three actions in the Git pane in RStudio : Commit, Pull, and Push
+* Your first step should always be Pull, which brings your local branch up to date with the GitHub master
+* After making changes to a file, you need to Commit it (by checking the box of the filename in the Git pane and clicking "Commit") and add a short, informative description.
+* After Commiting, you will see a little message in the Git pane that your branch is ahead of the master branch by one or more commits
+* When you see this message, you need to update the master branch by Pushing your changes (click on the Push button)
