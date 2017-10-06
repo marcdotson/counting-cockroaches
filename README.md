@@ -38,9 +38,10 @@ git config --global user.email "YOUR EMAIL ADDRESS"
 * Give GitHub your SSH public key: https://github.com/settings/ssh.
 
 ## Create Repo
-* Create a project (dropdown menu found in upper-right hand corner of RStudio)
-* Go to project options, then to the Git/SVN panel. Change the “Version control system” from “None” to “Git”
-* You’ll then be prompted to restart RStudio.
-* You should have a new "Git" pane next to your "Environment" and "History"
+* Create a new project (dropdown menu found in upper-right hand corner of RStudio)
+* Select “Version Control”, then “Git”
+* Copy and paste the URL of the GitHub repository
+* Enter "counting-cockroaches" as the name and choose the directory (the folder where you are storing files for your RA work)
+* Click "Create Project" (you may be prompted to enter your GitHub username and password)
+* You should now have a "Git" pane next to your "Environment" and "History"
 
-## Synchronizing with GitHub
