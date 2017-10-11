@@ -35,7 +35,7 @@ Using social media to assess the severity of service failures.
 * Go to RStudio preferences, choose the Git/SVN panel, and click “Create RSA Key.”
 * Give GitHub your SSH key: https://github.com/settings/ssh.
 
-## Create a Local Branch
+## Creating a Local Branch
 * Create a new project (drop-down menu found in upper-right hand corner of RStudio).
 * Select “Version Control”, then “Git.”
 * Copy and paste the URL of the GitHub repository.
