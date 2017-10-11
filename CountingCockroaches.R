@@ -2,6 +2,8 @@
 ####      1) Data Loading and Preparation     ###
 #################################################
 
+# Can we build this without using tm?
+
 library(tidyverse); library(tidytext); library(tm); library(topicmodels)
 load("/Users/maddatascientist/DATA SCIENCE/Marketing RA/Twitter Subset2.Rdata") # file location dependent on user
 tweets <- twitter_subset
