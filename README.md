@@ -30,6 +30,7 @@ Using social media to assess the severity of service failures.
 * Tell Git your name and email address (the same one as your GitHub account) by typing each of the following lines in the terminal:
 
 > git config --global user.name "YOUR FULL NAME"
+
 > git config --global user.email "YOUR EMAIL ADDRESS"
 
 * Go to RStudio preferences, choose the Git/SVN panel, and click “Create RSA Key.”
