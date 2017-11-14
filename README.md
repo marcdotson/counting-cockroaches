@@ -68,4 +68,4 @@ Using social media to assess the severity of service failures.
 ## References
 * Hadley Wickham's *R Packages* book: http://r-pkgs.had.co.nz/git.html.
 * Happy Git and GitHub for the useR: http://happygitwithr.com.
-* Syncing a Fork: https://help.github.com/articles/syncing-a-fork/.
+* Syncing a Fork: https://help.github.com/articles/syncing-a-fork/ or http://www.hpique.com/2013/09/updating-a-fork-directly-from-github/.
