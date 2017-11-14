@@ -46,7 +46,7 @@ Using social media to assess the severity of service failures.
 
 ## Now What?
 * You have three important buttons in the Git pane in RStudio: Commit, Pull, and Push.
-* Always statrt with a Pull, which brings your local branch up to date with the master branch.
+* Always start with a Pull, which brings your local branch up to date with the master branch.
 * After making changes to a file, you need to Commit it (by checking the box of the filename in the Git pane and clicking "Commit") and add a short, informative description.
 * After commiting, you will see a little message in the Git pane that your branch is ahead of the master branch by one or more commits.
 * When you see this message, you need to submit an update to the master branch by Pushing your changes (click on the Push button).
