@@ -36,27 +36,36 @@ Using social media to assess the severity of service failures.
 * Go to RStudio preferences, choose the Git/SVN panel, and click “Create RSA Key.”
 * Give GitHub your SSH key: https://github.com/settings/ssh.
 
-## Fork the Repo
-* For any repository that you don't own (like this one), you'll need to first fork it.
-* Click on "Fork" in the upper right corner. This will create a branch of the repository that is your own copy.
+## Collaborating on GitHub
+### Fork a Repo
+* For any repository that you don't own (like this one), you'll need to fork it first.
+* Click on "Fork" in the upper right corner. This will create a branch of the repository that is your own.
 
-## Clone the Repo
-* Cloning is the process of making a local copy of a repository.
+### Clone the Repo
+* Cloning is the process of making a local copy of a repository (i.e., your branch of the repository).
 * Create a new RStudio project (drop-down menu found in upper-right hand corner of RStudio).
 * Select “Version Control”, then “Git.”
-* Copy and paste the URL of the GitHub repository (for this one, your fork of the repository).
+* Copy and paste the URL of the GitHub repository (i.e., your branch of the repository).
 * Enter the name of your clone (e.g., "counting-cockroaches") and choose the directory where you want it saved.
 * Click "Create Project" (you may be prompted to enter your GitHub username and password).
 * You should now have a "Git" pane next to your "Environment" and "History" panes in RStudio.
 
-## Now What?
+### Making Changes
 * You have three important buttons in the Git pane in RStudio: Commit, Pull, and Push.
-* Always start with a Pull, which brings your clone up to date with the master branch (of your fork).
+* Always start with a Pull, which brings your clone up to date with the master branch (i.e., your branch of the repository).
 * After making changes to a file, you need to Commit it (by checking the box of the filename in the Git pane and clicking "Commit") and add a short, informative description. Do this often -- it's synonymous with saving your work.
-* After commiting, you will see a little message in the Git pane that your clone is ahead of the master branch (of your fork) by one or more commits.
-* When you see this message, you need to submit an update to the master branch (of your fork) by Pushing your changes (click on the Push button). Do this once or twice a work session.
-* When you want to recommend that the changes you've made in your fork of the repository should be merged so everyone has access to them, you'll want to open a Pull Request. A discussion will commence. The owner of the repository will be the one to decide on if and how to commit the changes from your fork.
+* After commiting, you will see a little message in the Git pane that your clone is ahead of the master branch (i.e., your branch of the repository) by one or more commits.
+* When you see this message, you need to submit an update to the master branch (i.e., your branch of the repository) by Pushing your changes (click on the Push button). Do this once or twice a work session.
+
+### Pull Request
+* When you want to recommend that the changes you've made in your fork of the repository should be merged so everyone has access to them, you'll want to open a Pull Request.
+* A discussion will commence. The owner of the original repository will be the one to decide on if and how to commit the changes from your branch to the master branch.
+
+### Syncing a Fork
+* One challenge remains. If the original repository is changed after you've forked it, you won't have the updates in your personal branch or your local clone.
+* This may not be an issue for now, but eventually you'll want to be able to sync your fork (see references).
 
 ## References
 * Hadley Wickham's *R Packages* book: http://r-pkgs.had.co.nz/git.html.
 * Happy Git and GitHub for the useR: http://happygitwithr.com.
+* Syncing a Fork: https://help.github.com/articles/syncing-a-fork/.
