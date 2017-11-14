@@ -27,7 +27,7 @@ Using social media to assess the severity of service failures.
 
 ### Code Returns FALSE
 * If the code returns FALSE, then you need to generate a key.
-* Tell Git your name and email address (the same one as your GitHub account) by typing each of the following lines in the terminal:
+* Tell Git your name and email address (the same one as your GitHub account) by typing each of the following lines in the terminal (accessible now within RStudio):
 
 > git config --global user.name "YOUR FULL NAME"
 
