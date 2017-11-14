@@ -2,8 +2,8 @@
 Using social media to assess the severity of service failures.
 
 ## Getting Started
-* Unlimited private repositories are available for students and academics: https://education.github.com.
 * GitHub Guides is a good place to get familiar with how to use the platform: https://guides.github.com.
+* For your own projects, free private repositories are available for students and professors: https://education.github.com.
 * Make sure you have the latest version of R, RStudio, and Git (see next section) installed.
 
 ## Installing Git
