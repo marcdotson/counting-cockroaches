@@ -1,6 +1,3 @@
-# counting-cockroaches
-Using social media to assess the severity of service failures.
-
 ## Getting Started
 * Get unlimited private repositories for free as a student or academic: https://education.github.com.
 * GitHub Guides is a good place to get familiar with how to use the platform: https://guides.github.com.
