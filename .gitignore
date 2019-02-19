@@ -1,3 +1,13 @@
-.DS_Store
-model50-tweet_sample_2M_noRT.dat.bin
+# Folders
+Output/*
+Readings/*
+Temporary/*
+
+# R Stuff
 .Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Miscellaneous
+.DS_Store

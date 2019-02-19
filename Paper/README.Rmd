@@ -1,0 +1,9 @@
+---
+title: "Paper"
+output: github_document
+---
+
+## Description
+
+The manuscript of the paper, without any PDF knits.
+
