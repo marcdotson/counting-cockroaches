@@ -14,3 +14,7 @@ size of a population from a non-random sample (e.g., the German tank
 problem). In this paper, we develop a model that uses a variety of
 observed customer complaints on Twitter to make inference about the
 severity of service failures.
+
+For general details on GitHub usage, project organization, and project
+workflow, see [Research Assistant
+Training](https://github.com/marcdotson/ra-training).
