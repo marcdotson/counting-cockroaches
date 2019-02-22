@@ -1,5 +1,5 @@
 ---
-title: "Assessing the Severity of Service Failures Through Social Chatter"
+title: "Assessing the Severity of Service Failures"
 output: github_document
 ---
 

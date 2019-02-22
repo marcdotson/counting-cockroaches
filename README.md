@@ -1,4 +1,4 @@
-Assessing the Severity of Service Failures Through Social Chatter
+Assessing the Severity of Service Failures
 ================
 
 ## Abstract
