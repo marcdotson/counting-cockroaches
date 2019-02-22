@@ -1,0 +1,42 @@
+---
+title: "Classifier"
+output: github_document
+---
+
+# Overview
+In this R Markdown, we'll be documenting how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
+
+# Load Packages
+```{r}
+library(fastrtext)
+library(tidyverse)
+```
+
+# Define Functions
+No functions have been defined in this file. 
+
+# About fastText
+fastText was designed by Facebook and it allows us to build models for both classification and word embeddings. Classification refers to analyzing a set of text, and labeling it according to the topics it closely relates to. Word embeddings help us predict which words are most closely related to a single word of interest. 
+
+fastText boasts that it can perform classification and the creation of word embeddings faster than other tools used for comparable activities (like Word2vec and GloVe) without sacrificing accuracy. This is what drew our team's attention to this method from the beginning.
+
+If you are unfamiliar with Fasttext, we'd reccomend getting to know it better by following along with the tutorials found at https://fasttext.cc/docs/en/supervised-tutorial.html. The tutorial run entirely from the terminal (a.k.a. the command line, shell, bash, command prompt), so if you're uncomfortable navigating your computer from the terminal, it would be worthwhile to find some tutorials on navigating directories within your terminal before beginning to learn fastText. If you'd like to learn more about how fastText works, this post found on Medium is also helpful https://towardsdatascience.com/fasttext-under-the-hood-11efc57b2b3.
+
+Finally, if you don't conceptually understand word embeddings and classification, we reccomend doing a bit of research to get a better grip on those ideas before proceding. 
+
+# Execute Code
+To build our fasttext classification model, we begin by defining where we want to store our fastText model once we've trained it. In our case, we want to store the model in Output/models and name the model class_mod_1.dat. Within R, we'll refer to this file path as file_model. 
+
+As a data input for training our model, we already have two text files: train_data_1.txt and test_data_1.txt. The file paths to these text files (already built) will be referred to as train_data and test_data.
+```{r}
+file_model <- "Output/models/class_mod_1.dat"
+train_data <- "Output/clean_data/train_data_1.txt"
+test_data <- "Output/clean_data/test_data_1.txt"
+```
+
+
+## Clean Data
+
+## Build Model
+
+# Analysis

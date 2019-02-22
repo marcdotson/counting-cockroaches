@@ -1,5 +1,6 @@
 library(RPostgreSQL)
 library(dbplyr)
+library(tidyverse)
 
 
 # Connect to RDS ----------------------------------------------------------
@@ -31,5 +32,7 @@ sample_tweets <-
 # Once tweets are pulled in, write the lines to a file.
 sample_tweets %>%
   .$tweet_text %>% 
-  write_lines("data/tweet_sample_1hM_noRT.txt")
+  write_lines("Output/clean_data/tweet_sample_1hM_noRT.txt")
+
+DBI::dbDisconnect(con)
 
