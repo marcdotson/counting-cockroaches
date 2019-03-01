@@ -8,8 +8,8 @@ In this R Markdown, we'll be documenting how we built our model for classifying 
 
 # Load Packages
 ```{r}
-library(fastrtext)
-library(tidyverse)
+# library(fastrtext)
+# library(tidyverse)
 ```
 
 # Define Functions
@@ -33,9 +33,9 @@ As a data input for training our model, we already have two text files: train_da
 
 
 ```{r}
-file_model <- "Output/models/class_mod_1.dat"
-train_data_path <- "Output/clean_data/train_data_1.txt"
-test_data_path <- "Output/clean_data/test_data_1.txt"
+# file_model <- "Output/models/class_mod_1.dat"
+# train_data_path <- "Output/clean_data/train_data_1.txt"
+# test_data_path <- "Output/clean_data/test_data_1.txt"
 ```
 
 ## Read in the Data
@@ -92,10 +92,10 @@ As mentioned earlier, we need to create a text file of our training and test dat
 # write_lines(test_data_lines, test_data_path)
 
 # create a character vector containing the tweets to test without their labels
-test_labels_without_prefix <- 
-  test_train_data %>% 
-  filter(test_train == "test") %>% 
-  pull(label)
+# test_labels_without_prefix <- 
+#   test_train_data %>% 
+#   filter(test_train == "test") %>% 
+#   pull(label)
 ```
 
 ## Train the Model
@@ -114,47 +114,47 @@ You can find more information about the parameters of the model (such as -dim, -
 
 ```{r}
 # train model
-execute(commands = c("supervised", "-input", train_data_path, "-output", file_model, "-dim", 20, "-lr", 1, "-epoch", 20, "-wordNgrams", 2, "-verbose", 1))
-
-# load model
-model <- load_model(file_model)
+# execute(commands = c("supervised", "-input", train_data_path, "-output", file_model, "-dim", 20, "-lr", 1, "-epoch", 20, "-wordNgrams", 2, "-verbose", 1))
+# 
+# # load model
+# model <- load_model(file_model)
 ```
 
 ## Review Model:
 We'll want to see how a few of the predictions turned out. 
 ```{r}
 # prediction are returned as a list with words and probabilities
-predictions <- predict(model, sentences = test_data_lines, simplify = TRUE, unlock_empty_predictions = TRUE)
-head(predictions, 5)
+# predictions <- predict(model, sentences = test_data_lines, simplify = TRUE, unlock_empty_predictions = TRUE)
+# head(predictions, 5)
 ```
 
 This will help us confirm that our model worked as expected.
 ```{r}
-length(predictions)
-length(test_labels_without_prefix)
-length(test_data_lines)
+# length(predictions)
+# length(test_labels_without_prefix)
+# length(test_data_lines)
 ```
 
 ## Accuracy
 Let's look at how accurately the model predicted names
 ```{r}
-# Compute accuracy
-mean(names(unlist(predictions)) == test_labels_without_prefix, na.rm = TRUE)
+# # Compute accuracy
+# mean(names(unlist(predictions)) == test_labels_without_prefix, na.rm = TRUE)
 ```
 
 Here, we'll look at the hamming loss, and a few of the predictions.
 
 The hamming loss is the number of wrong labels over the total number of labels. Hamming loss is most useful when applied to multi-classifiers because when it is done with binary classifiers (such as ours), it is simply equal to 1 - accuracy.
 ```{r}
-# because there is only one category by observation, hamming loss will be the same
-get_hamming_loss(as.list(test_labels_without_prefix), predictions)
-
-# test predictions
-predictions <- predict(model, sentences = test_to_write)
-print(head(predictions, 5))
-
-# you can get flat list of results when you are retrieving only one label per observation
-print(head(predict(model, sentences = test_to_write, simplify = TRUE)))
+# # because there is only one category by observation, hamming loss will be the same
+# get_hamming_loss(as.list(test_labels_without_prefix), predictions)
+# 
+# # test predictions
+# predictions <- predict(model, sentences = test_to_write)
+# print(head(predictions, 5))
+# 
+# # you can get flat list of results when you are retrieving only one label per observation
+# print(head(predict(model, sentences = test_to_write, simplify = TRUE)))
 ```
 
 
