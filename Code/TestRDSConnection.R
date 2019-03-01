@@ -20,7 +20,7 @@ Cockroaches <- tbl(con, "Cockroaches")
 
 # Pull Data Sample --------------------------------------------------------
 
-# Get Tweet text for the first 1500000 tweets in the DB. Remove retweets (there's a lot)
+# Get Tweet text for the first 1,500,000 tweets in the DB. Remove retweets (there's a lot)
 sample_tweets <- 
   Cockroaches %>% 
   filter(substr(tweet_text, 1, 4) != "RT @") %>% 
