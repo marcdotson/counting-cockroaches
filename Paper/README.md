@@ -17,6 +17,10 @@ problem). In this paper, we develop a model that uses a variety of
 observed customer complaints on Twitter to make inference about the
 severity of service failures.
 
+License: This work is licensed under a [Creative Commons
+Attribution-ShareAlike 4.0 International
+License](https://creativecommons.org/licenses/by-sa/4.0/).
+
 ## Introduction
 
 It has been said that if you observe a cockroach on your floor, there
