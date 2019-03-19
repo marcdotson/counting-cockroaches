@@ -204,7 +204,7 @@ For our purposes, we should be able to use PCA analysis by taking large ammounts
 Useful Resources:
 -----------------
 
-Quick Explanation of PCA: <https://www.youtube.com/watch?v=HMOI_lkzW08>
+Quick Explanation of PCA: <https://www.youtube.com/watch?v=HMOI_lkzW08> <https://www.youtube.com/watch?v=_UVHneBUBW0>
 
 The XGBoost Sub-Model
 =====================
