@@ -1,8 +1,8 @@
 library(tidyverse)
 library(qtlcharts)
 library(caret)
-source("R/clus_func.R")
-source("R/logit_classifier_func.R")
+source("Code/complaint-prediction/R/clus_func.R")
+source("Code/complaint-prediction/R/logit_classifier_func.R")
 
 # read in labeled data ----------------------------------------------------
 

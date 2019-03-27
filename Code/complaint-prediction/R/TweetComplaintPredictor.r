@@ -25,3 +25,5 @@ newTweetComplaintPredictor <- function(fasttextModel, pcaModel, xgbModel, pcaMod
 
 # Class checker
 is.TweetComplaintPredictor <- function(x) inherits(x, "TweetComplaintPredictor")
+
+
