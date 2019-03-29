@@ -9,3 +9,46 @@ The numbering of the files is an attempt to be consistent with the tidyverse sty
 
 If the documents only contain a single, massive block of code, this means that I haven't gotten around to annotating that script.
 
+Below, I have a quick and brief documentation of what I understand about each file. 
+
+# Overview of Files
+
+### 01_analyze_complaint_categories.Rmd
+This file analyzes our train/test dataset, documents the label types, visualizes the number of complaints to non-complaints, and visualizes the number of each complaint category. Additionally, it runs a tf_idf analysis on the catch-all complaint category to see if another category can be identified. 
+
+### 02_create_clustering_function.Rmd
+
+### 03_build_fasttext_classification_model.Rmd
+In this file, I create my own fastText supervised classification model to see how well it can classify on its own (i.e. without the help of a PCA and XGBoost model).
+
+Note: Code still has a few places it needs to be tweaked and isn't fully funcitonal yet--I need to write the .txt files and figure out how to make predictions with the trained model. 
+
+### 04_test_rds_connection.Rmd
+This file contains the credentials necessary to log into the R Data Server. It also has brief code for extracting some of the tweets from the database, and it writes the data to a .txt file. 
+
+### 05_counting_cockroaches.Rmd
+This file takes airline twitter data and creates a few visualizations (i.e. wordclouds) on the tweet text. 
+
+### 06_tweet_object.Rmd
+
+### 07_fasttext_supervised_classifier.Rmd
+This file documents the building of our fastText supervised classifier model.
+
+### 08_classifier_construction.Rmd
+
+### 09_fasttext_clust_EDA.Rmd
+
+### 10_logit_regression_classifier.Rmd
+
+### 11_predict_func.Rmd
+
+### 12_tweet_complaint_predictor.Rmd
+
+### 13_batch_classification.Rmd
+
+### 14_read_tweets_json.Rmd
+
+### 15_json_parse_upload.Rmd
+
+### 16_classifier_testing.Rmd
+This file references the full model, and makes predictions on single tweets. You can use it to see how the model will react with tweets you find online, as well as tweets you write yourself. 
