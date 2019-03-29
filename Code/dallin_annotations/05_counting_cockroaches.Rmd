@@ -5,6 +5,8 @@ output: github_document
 # Overview
 These are my annotations on the "CountingCockroaches.R" file written by Adriel
 
+This file is meant to take our twitter data and produce a few visualizations on the data. 
+
 ```{r}
 #################################################
 ####      1) Data Loading and Preparation     ###

@@ -1,0 +1,47 @@
+---
+title: "Classifier Testing"
+output: github_document
+---
+# Overview
+These are my annotations to the "classifier-testing.R" script written by Adriel.
+
+This document loads the model, and uses a predict function to test the model on new test tweets. We can see how the model will respond to tweets we find on the internet as well as tweets we make up ourselves. 
+
+### What scripts need to function for this code to work?
+predict_func.R
+* Renamed as 11_predict_func.Rmd
+* NOT WORKING
+
+TweetComplaintPredictor.r
+* Renamed as 12_tweet_complaint_predictor.Rmd
+* NOT WORKING
+
+### Which models need to be loaded for this code to work?
+prccomp4.dat 
+* I think this is the PCR model
+* NOT FOUND
+
+model50-tweet_sample_2M_noRT.dat.bin 
+* It looks like this is a fasttext model, but I'm not sure if it is the supervised or unsupervised.
+* NOT FOUND
+
+xgb.modelPC4.dat
+* This must be the xg boost model that brings the sub-models together.
+* NOT FOUND
+
+
+```{r}
+library(fastrtext)
+library(Matrix)
+library(xgboost)
+source("11_predict_func.Rmd") # Formerly "R/predict_func.R" in Adriel's original code
+source("tweet_complaint_predictor.Rmd") # Formerly "R/TweetComplaintPredictor.r" in Adriel's original code
+
+load("complaint-prediction/models/fullClassifierOne/prcomp4.dat")
+fasttextModel <- load_model("complaint-prediction/models/fullClassifierOne/model50-tweet_sample_2M_noRT.dat.bin")
+load("complaint-prediction/models/fullClassifierOne/xgb.modelPC4.dat")
+TweetComplaintPredictor <- newTweetComplaintPredictor(fasttextModel, train.pr, bst, PC4)
+
+predict(TweetComplaintPredictor, "")
+```
+

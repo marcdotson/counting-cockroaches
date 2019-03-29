@@ -47,6 +47,12 @@ sample_tweets <- Cockroaches %>%
   collect() # all the processing is done server side before being pulled in by collect()
 ```
 
+### Check the Working Directory
+```{r}
+getwd()
+```
+
+
 ### Write Tweets to a .txt File
 Now that we have wrangled the data and saved it as an object in our environment, we want to use the write_lines() function to save this data file as a .txt file.
 ```{r}
@@ -54,7 +60,7 @@ Now that we have wrangled the data and saved it as an object in our environment,
 # Once tweets are pulled in, write the lines to a file.
 sample_tweets %>%
   .$tweet_text %>% 
-  write_lines("Output/clean_data/tweet_sample_1hM_noRT.txt")
+  write_lines("../../Temporary/tweet_sample_1hM_noRT.txt")
 ```
 
 # Disconnect

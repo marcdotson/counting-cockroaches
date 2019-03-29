@@ -6,6 +6,7 @@ output: github_document
 # Overview
 These are my annotations of the "classifier-construction.R" script written by Adriel.
 
+# Libraries
 ```{r}
 library(tidyverse)
 library(fastrtext)
@@ -22,26 +23,37 @@ library(caret)
 library(car)
 
 set.seed(123)
+```
+
+##### Look at working directory
+```{r}
+getwd()
+```
 
 
+
+# Train and Load the fastText Model
+Unsupervised fastText models produce word vectors. In other words, the create a mathmatical representation of the word. 
+```{r}
 # Fasttext train ----------------------------------------------------------
-
-
 # train unsupervised fasttext model to learn tweet semantics and word vector representations
 
 # file to read tweets from. Should be a txt file with one tweet per line
-file_txt <- "data/tweet_sample_2M_noRT.txt"
+file_txt <- "../../Temporary/tweet_sample_2M_noRT.txt"
 
 # new file to write the trained model to
-file_model50  <- "models/fullClassifierOne/model50-tweet_sample_2M_noRT.dat"
+file_model50  <- "../../Temporary/model50-tweet_sample_2M_noRT.dat"
 
 # train the unsupervised fasttext model
 #fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 
 # load the model object we just trained
 fasttext_model <- load_model(file_model50)
+```
 
 
+
+```{r}
 # Fasttext model evaluation -----------------------------------------------
 
 # Examine the nearest neighbors returned by our trained model. 
