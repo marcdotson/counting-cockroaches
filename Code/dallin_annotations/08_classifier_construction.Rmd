@@ -6,6 +6,12 @@ output: github_document
 # Overview
 These are my annotations of the "classifier-construction.R" script written by Adriel.
 
+This file is extremely important because it is where Adriel built the "frankenstein" model.
+
+Here are two important models built by this script:
+model50-tweet_sample_2M_noRT.dat
+xgb.modelPC4-xgb_version.dat
+
 # Libraries
 ```{r}
 library(tidyverse)
@@ -14,8 +20,10 @@ library(magrittr) # for assignment operator %<>%
 library(plotly)
 require(randomForest)
 library(Matrix)
-source("R/clus_func.R")
-source("R/logit_classifier_func.R")
+source("../complaint-prediction/R/clus_func.R")
+# source("../complaint-prediction/R/logit_classifier_func.R") This file does not exist
+
+# source("02_create_clusteringifunction.Rmd") New files not yet
 
 
 library(xgboost)
@@ -39,13 +47,14 @@ Unsupervised fastText models produce word vectors. In other words, the create a 
 # train unsupervised fasttext model to learn tweet semantics and word vector representations
 
 # file to read tweets from. Should be a txt file with one tweet per line
-file_txt <- "../../Temporary/tweet_sample_2M_noRT.txt"
+# file_txt <- "../../Temporary/tweet_sample_2M_noRT.txt"
+file_txt <- "../../Temporary/tweet_sample_1hM_noRT.txt"
 
 # new file to write the trained model to
 file_model50  <- "../../Temporary/model50-tweet_sample_2M_noRT.dat"
 
 # train the unsupervised fasttext model
-#fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
+# fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 
 # load the model object we just trained
 fasttext_model <- load_model(file_model50)
@@ -74,16 +83,16 @@ map(nn_words, function(x) model_eval_plot_wrap(x[1], fasttext_model, filter_str 
 # Predict and average word vectors for tweets -----------------------------
 
 # read in labeled traing data
-train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv")
+train <- read_csv("../../Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv")
 
 # Add extracted text features to the dataset ------------------------------
 
-train %<>% 
+train <- train %>% 
   mutate(tweetFeatures = map(tweet_text, TweetFeatures))
 
 
 # create a list column that contains all of features output by the fasttext model
-train %<>% 
+train <- train %>%
   mutate(avg_vec_50 = map(tweet_text, VectorizeTweet, model = fasttext_model))
 
 

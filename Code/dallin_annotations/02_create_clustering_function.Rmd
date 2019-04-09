@@ -34,7 +34,8 @@ avg_word_vec <- function(text, model) {
 }
 ```
 
-### Code I don't understand
+### Code I don't understand, other than that it is a list of many functions created. 
+The functions are: nn_filter, model_eval, GetDotObjectNames, model_eval_plot, model_eval_plot_wrap, and wss_func.
 ```{r}
 # I imagine that this somehow takes a look at the nearest neigbors of a single word, or a tweet vector?
  nn_filter <- function(model, token, filter_str, n = 1000) {

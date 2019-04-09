@@ -35,14 +35,17 @@ This file takes airline twitter data and creates a few visualizations (i.e. word
 This file documents the building of our fastText supervised classifier model.
 
 ### 08_classifier_construction.Rmd
+This document contains the code that builds models referenced in other files, namely the model50-tweet_sample_2M_noRT.dat and xgb.modelPC4-xgb_version.dat
 
 ### 09_fasttext_clust_EDA.Rmd
 
 ### 10_logit_regression_classifier.Rmd
 
 ### 11_predict_func.Rmd
+This file contains a lot of useful functions for our model, such as the VectorizeTweet function.
 
 ### 12_tweet_complaint_predictor.Rmd
+tweet_complaint_predictor.Rmd builds a function named newTweetComplaintPredictor, which is referenced in serveral other scripts.
 
 ### 13_batch_classification.Rmd
 
@@ -52,3 +55,5 @@ This file documents the building of our fastText supervised classifier model.
 
 ### 16_classifier_testing.Rmd
 This file references the full model, and makes predictions on single tweets. You can use it to see how the model will react with tweets you find online, as well as tweets you write yourself. 
+
+Note: I can't seem to find the logit_classifier_func.R file anywhere. It's referenced in classifier_construction.R

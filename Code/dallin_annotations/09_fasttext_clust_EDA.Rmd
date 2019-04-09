@@ -15,7 +15,7 @@ library(cluster)
 library(qtlcharts)
 library(RPostgreSQL)
 library(dbplyr)
-source("Code/complaint-prediction/R/clus_func.R")
+source("../complaint-prediction/R/clus_func.R")
 
 # source("R/rquery_cormat.R") Note from Dallin: Where is this file?
 
@@ -44,10 +44,11 @@ sample_tweets <-
   head(900000) %>% 
   collect()
 
+getwd()
 
 sample_tweets %>%
   .$tweet_text %>% 
-  write_lines("data/tweet_sample_1mil.txt")
+  write_lines("../../Temporary/tweet_sample_1mil.txt")
 
 
 # Remove retweets
@@ -62,7 +63,7 @@ sample_tweets <-
 
 sample_tweets %>%
   .$tweet_text %>%
-  write_lines("data/tweet_sample_1hM_noRT.txt")
+  write_lines("../../Temporary/tweet_sample_1hM_noRT.txt")
 rm(sample_tweets) # After writing the .txt files, we are removing them from the environment with the rm() function
 
 
@@ -78,7 +79,7 @@ sample_tweets <-
 
 sample_tweets %>%
   .$tweet_text %>%
-  write_lines("data/tweet_sample_2M_noRT.txt")
+  write_lines("../../Temporary/tweet_sample_2M_noRT.txt")
 rm(sample_tweets)
 
 
@@ -89,27 +90,27 @@ rm(sample_tweets)
 # create_clusters ---------------------------------------------------------
 
 
-file_txt <- "data/tweet_sample_1hM_noRT.txt"
+file_txt <- "../../Temporary/tweet_sample_1hM_noRT.txt"
 
-file_model200 <- "data/models/model200.dat"
-file_model150 <- "data/models/model150.dat"
-file_model100 <- "data/models/model100.dat"
-file_model50  <- "data/models/model50.dat"
-file_model25  <- "data/models/mode25.dat"
+file_model200 <- "../../Temporary/model200.dat"
+file_model150 <- "../../Temporary/model150.dat"
+file_model100 <- "../../Temporary/model100.dat"
+file_model50  <- "../../Temporary/model50.dat"
+file_model25  <- "../../Temporary/mode25.dat"
 
- execute(commands = c("cbow", "-input", file_txt, "-output", file_model200, "-verbose", 1, "-dim", 200))
+ # execute(commands = c("cbow", "-input", file_txt, "-output", file_model200, "-verbose", 1, "-dim", 200))
 model200 <- load_model(file_model200)
 
- execute(commands = c("cbow", "-input", file_txt, "-output", file_model150, "-verbose", 1, "-dim", 150))
+ # execute(commands = c("cbow", "-input", file_txt, "-output", file_model150, "-verbose", 4, "-dim", 150))
 model150 <- load_model(file_model150)
 
- execute(commands = c("cbow", "-input", file_txt, "-output", file_model100, "-verbose", 1, "-dim", 100))
+ # execute(commands = c("cbow", "-input", file_txt, "-output", file_model100, "-verbose", 4, "-dim", 100))
 model100 <- load_model(file_model100)
 
- execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
+ # execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 4, "-dim", 50))
 model50 <- load_model(file_model50)
 
- execute(commands = c("cbow", "-input", file_txt, "-output", file_model25, "-verbose", 1, "-dim", 25))
+ # execute(commands = c("cbow", "-input", file_txt, "-output", file_model25, "-verbose", 4, "-dim", 25))
 model25 <- load_model(file_model25)
 
 
@@ -149,8 +150,9 @@ model_eval_plot_wrap("tarmac", model200, model150, model100, model50, model25, f
 # create list columns with average vectors for tweets ---------------------
 
 sample_tweets <- 
-  read_lines("data/tweet_sample_1hM_noRT.txt") %>% 
-  tibble(tweet_text)
+  read_lines("../../Temporary/tweet_sample_1hM_noRT.txt") %>% 
+  tibble(tweet_text = .) 
+
 
 system.time({
   vec_out <- sample_tweets %>%

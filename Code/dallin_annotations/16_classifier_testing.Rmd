@@ -10,10 +10,12 @@ This document loads the model, and uses a predict function to test the model on 
 ### What scripts need to function for this code to work?
 ##### predict_func.R
 * Renamed as 11_predict_func.Rmd in this folder.
-* NOT WORKING
+* FOUND
+* WORKING
 
 ##### TweetComplaintPredictor.r
 * Renamed as 12_tweet_complaint_predictor.Rmd in this folder.
+* FOUND
 * NOT WORKING
 
 ### Which models need to be loaded for this code to work?
@@ -24,7 +26,10 @@ This document loads the model, and uses a predict function to test the model on 
 
 ##### model50-tweet_sample_2M_noRT.dat.bin 
 * It looks like this is a fasttext model, but I'm not sure if it is the supervised or unsupervised.
-* NOT FOUND
+* FOUND
+* NOT WORKING
+* It must have been large enough that it couldn't be shared on github
+* Found in the classifier_construction file (which is dependent on "R/clus_func.R" and "R/logit_classifier_func.R"
 
 ##### xgb.modelPC4.dat
 * This must be the xg boost model that brings the sub-models together.
@@ -37,7 +42,7 @@ This document loads the model, and uses a predict function to test the model on 
 library(fastrtext)
 library(Matrix)
 library(xgboost)
-source("11_predict_func.Rmd") # Formerly "R/predict_func.R" in Adriel's original code
+source("../complaint-prediction/R/predict_func.Rmd") # Formerly "R/predict_func.R" in Adriel's original code
 source("tweet_complaint_predictor.Rmd") # Formerly "R/TweetComplaintPredictor.r" in Adriel's original code
 ```
 
@@ -51,6 +56,8 @@ getwd()
 ```{r}
 load("../../Temporary/prcomp4.dat") # Formerly "complaint-prediction/models/fullClassifierOne/prcomp4.dat" in Adriel's original code
 fasttextModel <- load_model("complaint-prediction/models/fullClassifierOne/model50-tweet_sample_2M_noRT.dat.bin")
+# Model50 was built in fasttext_clust_EDA
+
 load("../../Temporary/xgb.modelPC4.dat") # Formerly "complaint-prediction/models/fullClassifierOne/xgb.modelPC4.dat" in Adriel's original code
 TweetComplaintPredictor <- newTweetComplaintPredictor(fasttextModel, train.pr, bst, PC4)
 

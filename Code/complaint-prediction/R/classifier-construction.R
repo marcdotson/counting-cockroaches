@@ -4,9 +4,11 @@ library(magrittr) # for assignment operator %<>%
 library(plotly)
 require(randomForest)
 library(Matrix)
-source("R/clus_func.R")
-source("R/logit_classifier_func.R")
+source("Code/complaint-prediction/R/clus_func.R")
+# source("Code/complaint-prediction/R/logit_classifier_func.R") # NOT FOUND. Where is this file?
 
+source("Code/complaint-prediction/R/predict_func.R") # Dallin added this code.
+ 
 
 library(xgboost)
 library(caret)
@@ -14,23 +16,31 @@ library(car)
 
 set.seed(123)
 
+getwd()
+
 
 # Fasttext train ----------------------------------------------------------
-
+# Dallin: In this block, we train the fasttext unsupervised model. This model analyzes the strength of associations 
+# between words, and creates word vectors (mathmatical representations) of each word. Later, you will see that we take
+# the word vectors for each word in a tweet and we average them to create a single "tweet vector." The tweet vector will 
+# become part of our input to the model.
 
 # train unsupervised fasttext model to learn tweet semantics and word vector representations
 
 # file to read tweets from. Should be a txt file with one tweet per line
-file_txt <- "data/tweet_sample_2M_noRT.txt"
+# file_txt <- "data/tweet_sample_2M_noRT.txt" # Original Adriel Code
+file_txt <- "Temporary/tweet_sample_2M_noRT.txt" # My adjustment, given that file paths have changed.
 
 # new file to write the trained model to
-file_model50  <- "models/fullClassifierOne/model50-tweet_sample_2M_noRT.dat"
+# file_model50  <- "models/fullClassifierOne/model50-tweet_sample_2M_noRT.dat" # Original Adriel Code
+file_model50  <- "Temporary/model50-tweet_sample_2M_noRT.dat"
 
 # train the unsupervised fasttext model
 #fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 
 # load the model object we just trained
-fasttext_model <- load_model(file_model50)
+fasttext_model <- load_model(file_model50) # Original Adriel Code
+
 
 
 # Fasttext model evaluation -----------------------------------------------
@@ -53,18 +63,30 @@ map(nn_words, function(x) model_eval_plot_wrap(x[1], fasttext_model, filter_str 
 # Predict and average word vectors for tweets -----------------------------
 
 # read in labeled traing data
-train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv")
+# train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv") This was Adriel's code, but I have the data stored somewhere else.
+
+# I believe the file I'm linking to will be similar to the one that Adriel linked imported above (commented out).
+train <- read_csv("Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv") 
+# Update: I tried this and I think it causes problems in the code block under "# create a list column..." (currently line 69)
 
 # Add extracted text features to the dataset ------------------------------
 
-train %<>% 
+train <- train %>% 
   mutate(tweetFeatures = map(tweet_text, TweetFeatures))
 
 
 # create a list column that contains all of features output by the fasttext model
-train %<>% 
+train <- train %>%
   mutate(avg_vec_50 = map(tweet_text, VectorizeTweet, model = fasttext_model))
 
+# It looks like there is a problem with the map() function. It doesn't seem to work well with mutate(). 
+# I don't understand how Adriel got this to work. ¯\_(ツ)_/¯
+
+# Dallin: The little chunk below is myself troubleshooting an error.
+train <- train %>%
+  mutate(avg_vec_50 = map(tweet_text, VectorizeTweet(tweet_text, model = fasttext_model)))
+
+new <- VectorizeTweet.Rcpp_fastrtext(train$tweet_text[1], model = fasttext_model)
 
 # PCA on fasttext vectors -------------------------------------------------
 
@@ -152,7 +174,7 @@ bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), label = as.nume
 test_data$prediction <- predict(bst, dtest1)
 
 predict(bst, dtest1) %>% map_chr(function(x) ifelse(x > 0, "complaint", "non-complaint"))
-  
+
 
 test_data %<>%
   mutate(predict_label = case_when(prediction > 0 ~ "Complaint",
