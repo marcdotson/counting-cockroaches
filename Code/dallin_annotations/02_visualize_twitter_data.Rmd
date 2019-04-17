@@ -5,7 +5,7 @@ output: github_document
 # Overview
 These are my annotations on the "CountingCockroaches.R" file written by Adriel
 
-This file is meant to take our twitter data and produce a few visualizations on the data. 
+This file is meant to take our twitter data and produce a few visualizations. These visualizations helped us explore the tweets and get a generic grip on what people tweeted about in relation to these airlines. Understanding the data better helped us move forward with our analysis and model building.
 
 ```{r}
 #################################################

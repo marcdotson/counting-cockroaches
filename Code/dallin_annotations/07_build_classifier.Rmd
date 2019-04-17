@@ -16,15 +16,13 @@ xgb.modelPC4-xgb_version.dat
 ```{r}
 library(tidyverse)
 library(fastrtext)
-library(magrittr) # for assignment operator %<>% 
+library(magrittr) # for assignment operator %<>%  Dallin: I will try to remove the use of %<>% to comply with the tidyverese stylguide.
 library(plotly)
 require(randomForest)
 library(Matrix)
-source("../complaint-prediction/R/clus_func.R")
+source("05_define_clustering_functions.R")
+source("06_define_prediction_functions.R")
 # source("../complaint-prediction/R/logit_classifier_func.R") This file does not exist
-
-# source("02_create_clusteringifunction.Rmd") New files not yet
-
 
 library(xgboost)
 library(caret)
@@ -54,17 +52,17 @@ file_txt <- "../../Temporary/tweet_sample_1hM_noRT.txt"
 file_model50  <- "../../Temporary/model50-tweet_sample_2M_noRT.dat"
 
 # train the unsupervised fasttext model
+# I've commented out the training of this model because it has already been trained and the output has been saved to the Temporary folder.
+
 # fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 
 # load the model object we just trained
 fasttext_model <- load_model(file_model50)
 ```
 
-
-
+# FastText Model Evaluation
+This block looks at a handfull of words and creates a visualization to see how well the fasttext model predicts words similar to those provodied (the words defined as nn_words).
 ```{r}
-# Fasttext model evaluation -----------------------------------------------
-
 # Examine the nearest neighbors returned by our trained model. 
 # First vector element is the word to look up NN, and the second is a string used to filter the results
 
@@ -79,32 +77,67 @@ nn_words  <- list(c("mad", "mad"),
                   c("weather", "weather"))
 
 map(nn_words, function(x) model_eval_plot_wrap(x[1], fasttext_model, filter_str = x[2], n = 20))
+```
 
+# Create Average word Vectors
+Here, our training dataset is brought in. With the data loaded, we featureize the tweets and create average tweet vectors. The features of the tweets and average vectors are stored inside a list-column to help organize our data well.
+
+```{r}
 # Predict and average word vectors for tweets -----------------------------
 
 # read in labeled traing data
-train <- read_csv("../../Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv")
+# train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv") This was Adriel's code, but I have the data stored somewhere else.
+
+# I believe the file I'm linking to will be similar to the one that Adriel linked imported above (commented out).
+train <- read_csv("../../Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv") 
+# Update: I tried this and I think it causes problems in the code block under "# create a list column..." (currently line 69)
 
 # Add extracted text features to the dataset ------------------------------
 
 train <- train %>% 
-  mutate(tweetFeatures = map(tweet_text, TweetFeatures))
+  mutate(tweetFeatures = map(tweet_text, TweetFeatures)) 
 
 
 # create a list column that contains all of features output by the fasttext model
 train <- train %>%
   mutate(avg_vec_50 = map(tweet_text, VectorizeTweet, model = fasttext_model))
 
+# Dallin: It looks like there is a problem with the map() or VectorizeTweet function above. 
+# It doesn't seem to work well with mutate(). 
+# I don't understand how Adriel got this to work. ¯\_(ツ)_/¯
+# The little chunk below is myself troubleshooting an error.
 
-# PCA on fasttext vectors -------------------------------------------------
+# I tried troubleshooting the problem with this code below, but it didn't work well
+# train <- train %>%
+#      mutate(avg_vec_50 = map(tweet_text, avg_word_vec(text = ., model = fasttext_model)))
 
+# I think I've fixed the problem by going into predict_func.R and removing the tbl_df() function and replacing it
+# with the as_tibble() function. It looks like the documentation is saying that the tbl_df() function has been removed
+# or something?
+```
+
+### Resulting Tweet Vectors
+```{r}
+
+
+```
+
+
+
+# PCA Analysis on the fastText Tweet Vectors
+
+### Train PCA Model
+```{r}
 # select the average vector column and perform a PCA
 train.pr <- train %>%
   select(avg_vec_50) %>% 
   unnest(avg_vec_50) %>% 
   as.matrix() %>% 
   prcomp()
+```
 
+### Evaluate the PCA Model with 3D Graph
+```{r}
 # create a dataframe with the pca output to examine the first 3 components
 
 pca_evaluation <- as_data_frame(train.pr$x)
@@ -121,7 +154,10 @@ plot_ly(pca_evaluation, x = ~PC1, y = ~PC2, z = ~PC3, color = ~label, colors = c
                       zaxis = list(title = 'PC3')))
 
 # looks good to me. The complaints seperate well.
+```
 
+### Scree Plot of Principal Components
+```{r}
 # make a scree plot of the components
 screeplot(train.pr, type = "line", npcs = 20)
 
@@ -129,10 +165,18 @@ screeplot(train.pr, type = "line", npcs = 20)
 # let's go with 15 components with this model.
 
 
-# Project word vectors onto PCA -------------------------------------------
+```
 
-train %<>% 
-  mutate(avg_vec_50_PCA = map(avg_vec_50, VectorizeTweet, model = train.pr, component = PC4))
+
+# Project Word Vectors onto PCA
+Here, we run the VectorizeTweet (PCA class) function on each of the tweet vectors. The VectorizeTweet PCA output summarizes the tweet vector in four principal components.
+```{r}
+train <- train %>% 
+  mutate(avg_vec_50_PCA = map(avg_vec_50, VectorizeTweet, model = train.pr, component = "PC4"))
+```
+
+
+```{r}
 
 save(train.pr, file = "models/fullClassifierOne/prcomp4.dat")
 
@@ -159,19 +203,6 @@ dtest <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec), label = as.numeri
 dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
 watchlist <- list(train = dtrain, eval = dtest)
 
-logregobj <- function(preds, dtrain) {
-  labels <- getinfo(dtrain, "label")
-  preds <- 1/(1 + exp(-preds))
-  grad <- preds - labels
-  hess <- preds * (1 - preds)
-  return(list(grad = grad, hess = hess))
-}
-
-evalerror <- function(preds, dtrain) {
-  labels <- getinfo(dtrain, "label")
-  err <- as.numeric(sum(labels != (preds > 0)))/length(labels)
-  return(list(metric = "error", value = err))
-}
 
 param <- list(max_depth = 2, eta = 1, silent = 1, nthread = 2, 
               objective = logregobj, eval_metric = evalerror)

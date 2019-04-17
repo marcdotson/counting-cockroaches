@@ -1,12 +1,3 @@
----
-title: "Tweet Complaint Predictor"
-output: github_document
----
-
-# Overview
-These are my annotations on the "TweetComplaintPredictor.r" script written by Adriel
-
-```{r}
 # TweetComplaintPredictor class constructor ----------------------------------------
 # Class constructor 
 newTweetComplaintPredictor <- function(fasttextModel, pcaModel, xgbModel, pcaModelComponentCutoff) {
@@ -35,7 +26,4 @@ newTweetComplaintPredictor <- function(fasttextModel, pcaModel, xgbModel, pcaMod
 # Class checker
 is.TweetComplaintPredictor <- function(x) inherits(x, "TweetComplaintPredictor")
 
-
-
-```
 

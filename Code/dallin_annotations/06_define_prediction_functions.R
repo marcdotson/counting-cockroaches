@@ -1,12 +1,11 @@
----
-title: "Predict Function"
-output: github_document
----
 
-# Overview
-These are my annotations on the predict_func.R script written by Adriel.
+# Overview ----------------------------------------------------------------
+# This script defines three different functions that were frequently referenced when building our classification model. When this script is 
+# referenced in other parts of code, it's treated as a package to import these nine functions.
 
-```{r}
+
+# Libraries ---------------------------------------------------------------
+
 library(tidyverse)
 library(fastrtext)
 library(stringr)
@@ -14,6 +13,8 @@ library(tidytext)
 
 
 # Testing Models ----------------------------------------------------------
+# I imagine that Adriel left this section to quickly test his functions as he built them.
+
 # fasttext.model.50 <- load_model("models/fasttext/model50.dat.bin")
 # fasttext.model.50_1 <- load_model("models/model50.dat.bin")
 # load("models/prcomp/cor.data.50.pr")
@@ -22,7 +23,9 @@ library(tidytext)
 # kTestComplaint <- "@jetblue why are your employees so rude today at dallas-fort worth? tons of attitude on simple questions. #notimpressed"
 # kTestNonComplaint <- "@delta I love your service, it's always excellent"
 
-# Featurization -----------------------------------------------------------
+# TweetFeatures Function -----------------------------------------------------------
+
+
 
 TweetFeatures <- function(tweet) {
   # Creates features from the tweet which are used for prediction
@@ -41,7 +44,7 @@ TweetFeatures <- function(tweet) {
 }
 
 
-# Label Prediction -------------------------------------------------------
+# Label Prediction Function -------------------------------------------------------
 
 predict.TweetComplaintPredictor <- function(object, newdata, complaintCutoff = 0) {
   # Given a character vector containing tweets to predict for, this function returns predicted labels for the given tweet.
@@ -70,13 +73,18 @@ predict.TweetComplaintPredictor <- function(object, newdata, complaintCutoff = 0
 }
 
 
+# Vectorize Tweet ---------------------------------------------------------
+# What It Does: This function is very similar to the avg_word_vec() function in 05_define_clustering_functions(), except that it has two
+# classes: one for handling fastText models, and another for handling PCA models. The fastText class takes the word vectors of the full tweet 
+# and returns a single, averaged vector. The PCA class returns the first n principal components where n is the number of components defined 
+# by the user. In our case, we used a scree plot to see how many principal components we should look at. 
 
 VectorizeTweet <- function(tweet, model, ...) UseMethod("VectorizeTweet", model)
 
 VectorizeTweet.Rcpp_fastrtext <- function(tweet, model, ...) {
   # Computes the word embedding vector for each word in a sentence and then averages them into a single vector
   #
-  # Args:
+  # Arguments:
   #   tweet: a single tweet as a string
   #   model: a trained fasttext model used to compute the word embedding vectors
   # 
@@ -87,10 +95,13 @@ VectorizeTweet.Rcpp_fastrtext <- function(tweet, model, ...) {
   # tokenize the text, return a list of tokens
   tokens <- strsplit(tweet, " ")[[1]]
   # apply get_word_vectors to each token in the vector, return tibble of word vecs, one row for each word
-  word.vec.tbl <- tbl_df(get_word_vectors(model, tokens))
+  # word.vec.tbl <- tbl_df(get_word_vectors(model, tokens)) Dallin: This code doesn't work for me, so I replaced it with the line below.
+  word.vec.tbl <- as_tibble(get_word_vectors(model, tokens))
   # summarise the word vector tibble into one average tibble
   summarise_all(word.vec.tbl, funs(mean), na.rm = TRUE)
 }
+# Dallin: This VectorizeTweet function is not working for me. The error I get comes from when I try to use the tbl_df() function on line 81
+# Dallin Update: I think I've fixed it? It now runs as expected on line 80 of classifier-construction.R
 
 VectorizeTweet.prcomp <- function(tweet, model, component, ...) {
   # Computes the principal components from the embedding vectors and returns the first 6
@@ -106,7 +117,33 @@ VectorizeTweet.prcomp <- function(tweet, model, component, ...) {
   
   predict(model, newdata = tweet) %>% 
     as_tibble() %>% 
-    select(PC1:!!component)
+    select(PC1:component) # select(PC1:!!component) # Dallin: the code that didn't work has been replaced with code I think will work.
+    
+  
+  # Dallin: I don't think this function is working right. I keep getting an error when I run this function around line 
+  # 135 of the classifier-construction.R script
+  # I don't know exactly where the predict() function comes from, but I imagine it predicts based on the prc model.
+  
 }
-```
 
+
+# Logregobj Function ------------------------------------------------------
+# Dallin: Logistic Regression on Object (I think?)
+
+logregobj <- function(preds, dtrain) {
+  labels <- getinfo(dtrain, "label")
+  preds <- 1/(1 + exp(-preds))
+  grad <- preds - labels
+  hess <- preds * (1 - preds)
+  return(list(grad = grad, hess = hess))
+}
+
+
+# Evalerror Function ------------------------------------------------------
+
+
+evalerror <- function(preds, dtrain) {
+  labels <- getinfo(dtrain, "label")
+  err <- as.numeric(sum(labels != (preds > 0)))/length(labels)
+  return(list(metric = "error", value = err))
+}
