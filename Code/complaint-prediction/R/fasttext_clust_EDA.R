@@ -6,8 +6,9 @@ library(cluster)
 library(qtlcharts)
 library(RPostgreSQL)
 library(dbplyr)
-source("R/clus_func.R")
-source("R/rquery_cormat.R")
+source("Code/complaint-prediction/R/clus_func.R")
+
+# source("R/rquery_cormat.R") Note from Dallin: Where is this file?
 
 
 # connect to db -----------------------------------------------------------
@@ -49,10 +50,11 @@ sample_tweets <-
   mutate(tweet_text = tolower(tweet_text)) %>%
   collect()
 
+
 sample_tweets %>%
   .$tweet_text %>%
   write_lines("data/tweet_sample_1hM_noRT.txt")
-rm(sample_tweets)
+rm(sample_tweets) # After writing the .txt files, we are removing them from the environment with the rm() function
 
 
 
@@ -86,19 +88,19 @@ file_model100 <- "data/models/model100.dat"
 file_model50  <- "data/models/model50.dat"
 file_model25  <- "data/models/mode25.dat"
 
-# execute(commands = c("cbow", "-input", file_txt, "-output", file_model200, "-verbose", 1, "-dim", 200))
+ execute(commands = c("cbow", "-input", file_txt, "-output", file_model200, "-verbose", 1, "-dim", 200))
 model200 <- load_model(file_model200)
 
-# execute(commands = c("cbow", "-input", file_txt, "-output", file_model150, "-verbose", 1, "-dim", 150))
+ execute(commands = c("cbow", "-input", file_txt, "-output", file_model150, "-verbose", 1, "-dim", 150))
 model150 <- load_model(file_model150)
 
-# execute(commands = c("cbow", "-input", file_txt, "-output", file_model100, "-verbose", 1, "-dim", 100))
+ execute(commands = c("cbow", "-input", file_txt, "-output", file_model100, "-verbose", 1, "-dim", 100))
 model100 <- load_model(file_model100)
 
-# execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
+ execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 model50 <- load_model(file_model50)
 
-# execute(commands = c("cbow", "-input", file_txt, "-output", file_model25, "-verbose", 1, "-dim", 25))
+ execute(commands = c("cbow", "-input", file_txt, "-output", file_model25, "-verbose", 1, "-dim", 25))
 model25 <- load_model(file_model25)
 
 

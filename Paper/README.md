@@ -54,13 +54,13 @@ number of negative tweets (i.e., complaints) for each firm for a given
 type of service failure. After accounting for differences in firm size,
 how accurately do these counts measure the true size of the population
 affected by the service failure (i.e., the reach of the service
-failure)? The counts could  the population size because not everyone
-that experiences a failure tweets about it. However, users could tweet
-more than once, experience multiple failures, tweet a complaint without
-experiencing the failure, or be influenced by network effects – which
-would all lead to observed counts that  the true population size. We
-propose a model that explicitly disentangles the propensity to complain
-from the propensity to exaggerate complaints.
+failure)? The counts could underestimate the population size because not
+everyone that experiences a failure tweets about it. However, users
+could tweet more than once, experience multiple failures, tweet a
+complaint without experiencing the failure, or be influenced by network
+effects – which would all lead to observed counts that  the true
+population size. We propose a model that explicitly disentangles the
+propensity to complain from the propensity to exaggerate complaints.
 
 ## Model Specification
 

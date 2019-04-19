@@ -1,0 +1,160 @@
+---
+title: "Fasttext Classification Model"
+output: github_document
+---
+# Overview
+In this file, I will make a fastText model for classification, and see how well it classifies on its own. Our team has already created a fasttext classifier; the purpose of this one is to help me better understand fastText as well as the code written by other team members. I hope that by creating the same classifier as other team members, I will encounter the same problems they did, and learn how to solve them. 
+
+##### Update:
+I've been struggling to get the test, query, and training .txt files organized. I've also struggled to be able to make predictions using the fastrtext package. That's what I need to work on when I come back to this document.
+
+
+# Libraries
+```{r}
+library(tidyverse)
+library(fastrtext)
+```
+
+# Prepare Data
+Our team has created a labeled test/train dataset for our classification model. It includes about 5,000 tweets that have been labeled with a binary classification (complaint, non-complaint) as well as with a more specific categorical label (delay, baggage, rude service, etc.). 
+
+We've created the dataset in a spreadsheet, but we need to do some reformatting before the data will be useful for fastText to use. We'll need to read in the data, reformat the labels, randomly assign some tweets to a test set, and others to a training set, and then reformat the data as a character vector instead of a dataframe.
+
+##### Read in the Data
+```{r}
+data_path <- here::here("Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv")
+
+data <- read_csv(data_path)
+```
+
+
+##### Change Complaint Labels
+The complaint labels need to be adjusted to be optimal for use in fastText. A label for "baggage" needs to look like "__label__baggage" in order for fastText to recognize it. 
+```{r}
+data <- data %>% 
+  mutate(bi_label = case_when(complaint_label == 0 ~ "__label__non-complaint",
+                              complaint_label == 1 ~ "__label__complaint"),
+         multi_label = str_c("__label__", complaint_category)
+  )
+
+```
+
+##### Randomly Assign Tweets to Test and Train Data
+According to R for Data Science, the standard protocal for testing and training a dataset is to use 60% of your data for testing, 20% for a query dataset, and 20% for testing the model. This is the labeling protocol we will follow.
+```{r}
+set.seed(42)
+
+# Create a vector of the same length as the data, where each integer has a 60% chance of being a 1, 20% chance of a 2, and 20% chance of being a 3.
+ss <- sample(1:3, size = nrow(data), replace = TRUE, prob = c(0.6, 0.2, 0.2))
+
+data <- data %>% 
+  mutate(set = case_when(ss == 1 ~ "train",
+                         ss == 2 ~ "query",
+                         ss == 3 ~ "test")
+         )
+```
+
+##### Make the Character Vectors for Each Dataset
+We will create a character vector containing the binary labels, and another containing the multi-categorical labels. 
+I need to get the data of these tweets organized into a set of binary labeled data and multi-labeled data. Additionally, I need to get these sets of data into character vectors (.txt files). So far, I've been struggling to organize my data.
+
+In this code, the loop_list creates a list for storing the character vectors we create. 
+```{r}
+loop_list <- list(1, 2, 3, 4, 5, 6)
+
+# These small tribbles contain the data that differs from loop to loop. I'm hoping that the bi_loop_data will help me create a quick loop for writing the tweets with labels to a character vector.
+
+bi_loop_data <- tribble(
+  ~"set",   ~"label_type",
+  #-------|--------------|
+  "train", "bi_label",
+  "query", "bi_label",
+  "test",  "bi_label"
+)
+
+multi_loop_data <- tribble(
+  ~"set",   ~"label_type",
+  #-------|--------------|
+  "train", "multi_label",
+  "query", "multi_label",
+  "test",  "multi_label"
+)
+
+# This data will be used to identify the paths for each set of data, as well as their name
+path_data <- tribble(
+  ~ "path",                                         ~ "path_name",
+  #-----------------------------------------------|--------------------|
+  "../Temporary/train_test_data/binary_train.txt",  "train_bi_path",
+  "../Temporary/train_test_data/binary_query.txt",  "query_bi_path",
+  "../Temporary/train_test_data/binary_test.txt",   "test_bi_path",
+  "../Temporary/train_test_data/multi_train.txt",   "train_multi_path",
+  "../Temporary/train_test_data/multi_query.txt",   "query_multi_path",
+  "../Temporary/train_test_data/multi_test.txt",    "test_multi_path"
+)
+
+# Make the loop for binary data
+for (i in 1:nrow(bi_loop_data)) {
+  loop_list[[i]] <- data %>%
+    filter(set == bi_loop_data$set[i]) %>% 
+    mutate(text = paste0(bi_label, " ", tweet_text)) %>% 
+    pull(text)
+}
+
+# Make the loop for multi-label data
+for (i in 1:nrow(multi_loop_data)) {
+  loop_list[[i + 3]] <- data %>%
+    filter(set == multi_loop_data$set[i]) %>% 
+    mutate(text = paste0(multi_label, " ", tweet_text)) %>% 
+    pull(text)
+}
+
+# Loop to create character vectors/write_lines()
+write_lines(loop_list[1],path_data$path[1])
+
+bi_train <- data %>%
+    filter(set == "train") %>% 
+    mutate(text = paste0(bi_label, " ", tweet_text)) %>% 
+    pull(text)
+
+train_data_lines <- test_train_data %>% 
+  filter(test_train == "train") %>% 
+  pull(input_lines) %>% 
+  paste0("__label__", .)
+
+
+```
+
+# Train Model
+Now it's time to train the model using the data we've prepared.
+```{r}
+bi_model_filepath <- "../Temporary/binary_fasttext_model.dat"
+multi_model_filepath <- "../Temporary/multi_fasttext_model.dat"
+  
+# Train the Binary fastText Classification Model
+  execute(commands = c("supervised", "-input", train_bi_path, "-output", bi_model_filepath, "-dim", 20, "-lr", 1,
+                       "-epoch", 20,"-wordNgrams", 2, "-verbose", 1))
+  
+  # Train the Multi-Category fastText Classification Model
+  execute(commands = c("supervised", "-input", train_multi_path, "-output", multi_model_filepath, "-dim", 20, "-lr", 1,
+                       "-epoch", 20,"-wordNgrams", 2, "-verbose", 1))
+
+```
+
+# Test & Analyze Model
+```{r}
+# Load Models
+bi_model <- load_model(bi_model_filepath)
+multi_model <- load_model(multi_model_filepath)
+
+# Make the query data an object
+query_data <- data %>% 
+  filter(set == "query") %>% 
+  select(tweet_text, bi_label)
+  
+
+# Make Predictions on Models (Didn't work for me?)
+# bi_predictions <- predict(bi_model, sentences = query_bi_path, simplify = TRUE, unlock_empty_predictions = TRUE)
+
+ execute(commands = c("test", bi_model, query_bi_path))
+```
+
