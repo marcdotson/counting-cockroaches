@@ -1,0 +1,9 @@
+---
+title: "Presentation"
+output: github_document
+---
+
+## Description
+
+Slides for presentations, again without any PDF knits.
+

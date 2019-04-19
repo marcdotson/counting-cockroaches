@@ -1,0 +1,147 @@
+---
+title: "Counting the Cockroaches in the Walls or I Know Why the Caged Bird Tweets: Assessing the Severity of Service Failures Through Social Chatter"
+output: github_document
+---
+
+## Abstract
+
+Firms employ a variety of passive listening platforms (e.g., customer comment cards, help lines, social media) that elicit a variety of complaints. Since these complaints are self-selected, it isn't obvious if complaints are widespread or genuinely indicative of systemic service failures. In other words, how can can a firm know when complaints can be ignored and when they need to addressed? This issue is related to a larger class of problems where the goal is to make inference about the size of a population from a non-random sample (e.g., the German tank problem). In this paper, we develop a model that uses a variety of observed customer complaints on Twitter to make inference about the severity of service failures.
+
+## Introduction
+
+It has been said that if you observe a cockroach on your floor, there are likely thousands inside the walls of your home. In a similar fashion, a variety of marketing studies have been conducted (by both academics and practitioners) that attempt to provide similar estimates with respect to the severity of service failures. For example, a standard rule of thumb is only 10\% of service failures are reported. Firms need information on the severity (i.e., type and reach) of service failures in order to know how and when to correct such failures. Our interest in this paper is to develop a model that uses readily available data from social media channels to estimate the severity of service failures.
+
+Using complaints (i.e, reports of service failures) on social media to estimate the type and reach of service failures is an opportunity and a challenge. The opportunity is access to a much larger, current, and inexpensive dataset compared to the traditional ways of assessing service failure severity (e.g., complaint cards and customer surveys). The challenge is considerable, including the non-representativeness of the complaints (i.e., not everyone uses social media and not everyone who experiences a complaint reports it) and that those using social media may be incentivized, given the public nature of the network, to exaggerate complaints.
+
+To illustrate, suppose a firm uses feedback reported on Twitter to assess service failure severity in order to simply determine their competitive position in the marketplace (e.g., the firm with the fewest complaints is the market leader). To do this, they simply count the number of negative tweets (i.e., complaints) for each firm for a given type of service failure. After accounting for differences in firm size, how accurately do these counts measure the true size of the population affected by the service failure (i.e., the reach of the service failure)? The counts could underestimate the population size because not everyone that experiences a failure tweets about it. However, users could tweet more than once, experience multiple failures, tweet a complaint without experiencing the failure, or be influenced by network effects -- which would all lead to observed counts that \emph{overestimate} the true population size. We propose a model that explicitly disentangles the propensity to complain from the propensity to exaggerate complaints.
+
+## Model Specification
+
+### Classifying Complaints and Complaint Types
+
+### Estimating Population Size
+
+Service failure severity of a given type is synonymous with the \emph{size} or \emph{reach} of the service failure (i.e., the proportion of consumers experiencing the service failure). However, since service failure complaints are self-reported, we also need to model the probability of observing a complaint (i.e., the propensity to complain). This first component is analogous to models of animal abundance and occurrence in ecology (see Royle and Dorazio, 2006; Wu et al., 2015). Additionally, since there are incentives to complain on social media, we also need to model the probability of exaggerating complaints (i.e., the propensity to exaggerate). This second component represents a departure from the ecology model and will be highlighted in \textcolor{red}{red}.
+
+Let's focus on Twitter data associated with the airline industry. First, let's specify the baseline model without the propensity to exaggerate (i.e., the ecology model). Second, let's specify the alternative model that accounts for the propensity to exaggerate.
+
+% Baseline Model
+\subsection{Baseline Model}
+\begin{align}
+y_{tj} &\sim \text{Binomial}(N_j,\theta_j)\\
+N_j &\sim \text{Poisson}(\lambda_j)\\
+\lambda_j &= \text{exp}(X\psi)\\
+\theta_j &= \text{logit}(W\gamma)
+\end{align}
+\begin{itemize}\singlespacing
+\item[] $t=1,\dotsc,T$ time periods
+\item[] $j=1,\dotsc,J$ airlines
+\item[] $y_{tj}$: number of observed complaints at time $t$ for airline $j$
+\item[] $N_j$: number of service failures for airline $j$
+\item[] $\lambda_j$: $P$-vector of rate of service failures for airline $j$
+\item[] $\theta_j$: $K$-vector of complaining probabilities for airline $j$
+\item[] $X$: $J \times P$ matrix of covariates driving airline service failures
+\item[] $W$: $J \times K$ matrix of covariates driving complaining
+\end{itemize}
+
+% Alternative Model
+\subsection{Alternative Model}
+\begin{align}
+y_{tij} &\sim \text{Binomial}(N_{ij},\theta_{ij} \cdot \textcolor{red}{\gamma_{ij}})\\
+N_{ij} &\sim \text{Poisson}(\lambda_{ij})\\
+\lambda_{ij} &= \text{exp}(WA)\\
+\theta_{ij} &= \text{logit}(XB)\\
+\textcolor{red}{\gamma_{ij}} & \textcolor{red}{= \text{logit}(ZD)}
+\end{align}
+
+\noindent where
+
+\singlespacing{
+\begin{itemize}
+\item[] $t=1,\dotsc,T$ time periods
+\item[] $i=1,\dotsc,I$ service failure types
+\item[] $j=1,\dotsc,J$ airlines
+\item[] $y_{tij}$: number of observed complaints at time $t$ of type $i$ for airline $j$
+\item[] $N_{ij}$: number of service failures of type $i$ for airline $j$
+\item[] $\theta_{ij}$: probability of complaining about type $i$ for airline $j$
+\item[] \textcolor{red}{$\gamma_{ij}$: probability of exaggerating about type $i$ for airline $j$}
+\item[] $\lambda_{ij}$: rate of service failures of type $i$ for airline $j$
+\item[] $W$: $T \times I \times J \times M$ array of covariates driving airline service failures
+\item[] $X$: $T \times I \times J \times P$ array of covariates driving complaining
+\item[] \textcolor{red}{$Z$: $T \times I \times J \times Q$ array of covariates driving exaggerating}
+\end{itemize}
+}
+
+% Ecological Model Examples
+\subsection{Ecological Model Examples}
+\begin{enumerate}
+\item Royle and Dorazio (2006), Hierarchical Models of Animal Abundance and Occurrence, \textit{Journal of Agricultural, Biological, and Environmental Statistics}.
+\begin{center}
+Blackbird Population Size in Switzerland
+\end{center}
+\begin{align*}
+y_{it}|N_i,\theta_i &\sim \text{Binomial}(N_i,\theta)\\
+N_i|\lambda_i&\sim \text{Poisson}(\lambda_i)\\
+\log(\lambda_i)&=\alpha_0+\alpha_1\texttt{Forest}_i+\alpha_2\texttt{Elev}_i+\alpha_3\texttt{Elev}_i^2\\
+\theta&\sim\text{Unif}(0,1)
+\end{align*}
+
+\item Wu, Holan, Nilon, and Winkle (2015), Bayesian Binomial Mixture Models for Estimating Abundance in Ecological Monitoring Studies, \textit{Annals of Applied Statistics}.
+\begin{center}
+Bird Ecosystem in Baltimore
+\end{center}
+\begin{align*}
+y_{itk}|N_{it},\theta_{it} &\sim \text{Binomial}(N_{it},\theta_{it})\\
+N_{it}|\lambda_{it}&\sim \text{Poisson}(\lambda_{it})\\
+\log(\lambda_{it})&=\alpha_{0t}+\alpha_1\texttt{treecover}_i+\alpha_2\texttt{bachelors}_i+\alpha_3\texttt{income}_i\\
+\text{logit}(\theta_{it})&=\beta_0+\beta_1\texttt{time}_{it}+\beta_2\texttt{airtemp}_{it}+\beta_3\texttt{cloudcover}_{it}
+\end{align*}
+
+\end{enumerate}
+
+% Covariates and Data Sources
+\subsection{Possible Covariates and Data Sources}
+\begin{itemize}
+\item $W$: Why does airline $j$ result in failures of type $i$ at time $t$?
+	\begin{itemize}
+    \item[--] Airline market share ($N$ is proportional to volume counts)
+    \item[--] Late arrivals
+    \item[--] Canceled flights
+    \item[--] Boarding policy
+    \item[--] Baggage policy
+    \item[--] Wifi
+    \item[--] Holiday
+    \item[--] Weather
+    \item[--] Labor/strikes
+    \item[--] Employee satisfaction (Glassdoor)
+    \item[--] Text analysis output
+    \end{itemize}
+\item $X$: Why do individuals in time $t$ complain about failures of type $i$ for airline $j$?
+	\begin{itemize}
+    \item[--] Positive/negative press (Twitter)
+    \item[--] Customer satisfaction (survey)
+    \item[--] Brand equity (survey)
+    \item[--] Profile of social media use (Twitter)
+    \item[--] Business vs. leisure travel
+    \item[--] Proportion of customer base on Twitter (Twitter, need for scaling $N_{tij}$)
+    \end{itemize}
+\end{itemize}
+
+## Empirical Application
+
+## Results
+
+## Discussion
+
+## References
+
+\section{Possible References}
+\subsection{Word of Mouth}
+Moderators of why people share word-of-mouth (Berger, 2014)
+\begin{enumerate}
+\item Impression management (self-enhancement, identity signaling, filling conversation space)
+\item Emotion regulation (social support, venting, sense making, reducing dissonance, taking vengeance, reliving enjoyable experience)
+\item Information acquisition (seeking advice, resolving problems)
+\item Social bonding (reinforce shared views, reducing loneliness/exclusion)
+\item Persuasion
+\end{enumerate}
