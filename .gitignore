@@ -11,3 +11,7 @@ Temporary/*
 
 # Miscellaneous
 .DS_Store
+
+# Large data files and model outputs
+Code/complaint-prediction/data/*
+Code/complaint-prediction/models/*
