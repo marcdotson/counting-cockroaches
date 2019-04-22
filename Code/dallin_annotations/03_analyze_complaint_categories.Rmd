@@ -62,7 +62,7 @@ library(topicmodels)
 # Read in the Labeled Tweets
 ```{r}
 # Note that the labeled tweet data is kept in my Temporary folder in the train_test_data folder
-data <- read_csv("../../Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv")
+data <- read_csv(here::here("Temporary", "Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv"))
 ```
 
 # Analyze the Data

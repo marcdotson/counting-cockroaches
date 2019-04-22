@@ -46,10 +46,10 @@ Unsupervised fastText models produce word vectors. In other words, the create a 
 
 # file to read tweets from. Should be a txt file with one tweet per line
 # file_txt <- "../../Temporary/tweet_sample_2M_noRT.txt"
-file_txt <- "../../Temporary/tweet_sample_1hM_noRT.txt"
+file_txt <- here::here("Temporary", "tweet_sample_1hM_noRT.txt")
 
 # new file to write the trained model to
-file_model50  <- "../../Temporary/model50-tweet_sample_2M_noRT.dat"
+file_model50  <- here::here("Temporary", "model50-tweet_sample_2M_noRT.dat")
 
 # train the unsupervised fasttext model
 # I've commented out the training of this model because it has already been trained and the output has been saved to the Temporary folder.
@@ -89,7 +89,7 @@ Here, our training dataset is brought in. With the data loaded, we featureize th
 # train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv") This was Adriel's code, but I have the data stored somewhere else.
 
 # I believe the file I'm linking to will be similar to the one that Adriel linked imported above (commented out).
-train <- read_csv("../../Temporary/train_test_data/Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv") 
+train <- read_csv(here::here("Temporary", "Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv"))
 # Update: I tried this and I think it causes problems in the code block under "# create a list column..." (currently line 69)
 
 # Add extracted text features to the dataset ------------------------------
@@ -178,13 +178,13 @@ train <- train %>%
 
 ```{r}
 
-save(train.pr, file = "models/fullClassifierOne/prcomp4.dat")
+save(train.pr, file = here:here("Output", "prcomp4.dat"))
 
-save(train, file = "models/fullClassifierOne/train_data.dat")
+save(train, file = here:here("Output", "train_data.dat"))
 
 rm(list = ls())
 
-load("models/fullClassifierOne/train_data.dat")
+load(here:here("Output", "train_data.dat"))
 
 trainIndex <- createDataPartition(train$complaint_label, p = .8, 
                                   list = FALSE, 
@@ -224,9 +224,9 @@ test_data %<>%
 
 confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
 
-save(bst, file = "models/fullClassifierOne/xgb.modelPC4.dat")
-xgb.save(bst, 'models/fullClassifierOne/xgb.modelPC4-xgb_version.dat')
-save(test_data, file = "models/fullClassifierOne/test_data.dat")
+save(bst, file = here:here("Output", "xgb.modelPC4.dat"))
+xgb.save(bst, here:here("Output", "xgb.modelPC4-xgb_version.dat"))
+save(test_data, file = here::here("Output", "test_data.dat"))
 
 
 ```

@@ -33,9 +33,9 @@ As a data input for training our model, we already have two text files: train_da
 
 
 ```{r}
-# file_model <- "Output/models/class_mod_1.dat"
-# train_data_path <- "Output/clean_data/train_data_1.txt"
-# test_data_path <- "Output/clean_data/test_data_1.txt"
+# file_model <- here::here("Output", "models", "class_mod_1.dat")
+# train_data_path <- here::here("Output", "clean_data", "train_data_1.txt")
+# test_data_path <- here::here("Output", "clean_data", "test_data_1.txt")
 ```
 
 ## Read in the Data
@@ -43,7 +43,7 @@ We have our training and test data kept in one csv file. We'll read it in after 
 ```{r}
 # This code (and all code below) is broken because we don't have access to a tweet_sample_5k_full.csv file. 
 
-# tweet_data <- read_csv("data/Marketing Research Labeled Tweets_ - tweet_sample_5k_FULL.csv") %>%  
+# tweet_data <- read_csv(here:here("Temporary", "Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv")) %>%  
 #  filter(nchar(tweet_text) > 5)
 ```
 

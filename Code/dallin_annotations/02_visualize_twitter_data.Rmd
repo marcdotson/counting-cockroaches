@@ -14,8 +14,11 @@ This file is meant to take our twitter data and produce a few visualizations. Th
 
 # Can we build this without using tm?
 
+# Libraries
 library(tidyverse); library(tidytext); library(tm); library(topicmodels)
-load("/Users/maddatascientist/DATA SCIENCE/Marketing RA/Twitter Subset2.Rdata") # file location dependent on user
+
+# Load Data
+load(here::here("Data", "Twitter Subset2.Rdata")) # file location dependent on user
 tweets <- twitter_subset
 
 # Format tweets

@@ -53,8 +53,8 @@ sample_tweets <-
 
 # Once tweets are pulled in, write the lines to a file.
 sample_tweets %>%
-  .$tweet_text %>% 
-  write_lines("Output/clean_data/tweet_sample_1hM_noRT.txt")
+  .$tweet_text %>%
+  write_lines(here::here("Output", "clean_data", "tweet_sample_1hM_noRT.txt"))
 
 # Disconnect
 # It is always important do sever your connection to a database after you use it. 
