@@ -39,21 +39,19 @@ getwd()
 
 
 # Train and Load the fastText Model
-Unsupervised fastText models produce word vectors. In other words, the create a mathmatical representation of the word. 
+Unsupervised fastText models produce word vectors. In other words, the create a mathmatical representation of the word. These word vectors will be used later to 
 ```{r}
 # Fasttext train ----------------------------------------------------------
 # train unsupervised fasttext model to learn tweet semantics and word vector representations
 
 # file to read tweets from. Should be a txt file with one tweet per line
-# file_txt <- "../../Temporary/tweet_sample_2M_noRT.txt"
 file_txt <- here::here("Temporary", "tweet_sample_1hM_noRT.txt")
 
 # new file to write the trained model to
 file_model50  <- here::here("Temporary", "model50-tweet_sample_2M_noRT.dat")
 
 # train the unsupervised fasttext model
-# I've commented out the training of this model because it has already been trained and the output has been saved to the Temporary folder.
-
+# Note: I've commented out the training of this model because it has already been trained and the output has been saved to the Temporary folder.
 # fastrtext::execute(commands = c("cbow", "-input", file_txt, "-output", file_model50, "-verbose", 1, "-dim", 50))
 
 # load the model object we just trained
@@ -101,32 +99,35 @@ train <- train %>%
 # create a list column that contains all of features output by the fasttext model
 train <- train %>%
   mutate(avg_vec_50 = map(tweet_text, VectorizeTweet, model = fasttext_model))
-
-# Dallin: It looks like there is a problem with the map() or VectorizeTweet function above. 
-# It doesn't seem to work well with mutate(). 
-# I don't understand how Adriel got this to work. ¯\_(ツ)_/¯
-# The little chunk below is myself troubleshooting an error.
-
-# I tried troubleshooting the problem with this code below, but it didn't work well
-# train <- train %>%
-#      mutate(avg_vec_50 = map(tweet_text, avg_word_vec(text = ., model = fasttext_model)))
-
-# I think I've fixed the problem by going into predict_func.R and removing the tbl_df() function and replacing it
-# with the as_tibble() function. It looks like the documentation is saying that the tbl_df() function has been removed
-# or something?
 ```
 
-### Resulting Tweet Vectors
+### Analyzing the Outputs of What We Did Above
+The two sections below are the outputs of the code we ran above. for the example tweet first tweet, shown below.
 ```{r}
-
-
+train$tweet_text[[1]]
 ```
+
+
+##### Resulting Tweet Features
+This is the output of the tweetFeatures() function. It just makes a small table of data explaining features of each tweet, such as the number of spaces, the number of exclamation points, the number of characters, etc. The data table shown below is the output for just one tweet. This small data table is then stored inside a list-column of the train data.
+```{r}
+train$tweetFeatures[[1]]
+```
+
+
+##### Resulting Tweet Vectors
+Similar to the output above, this is the output of the VectorizeTweet() function for just one tweet. If you are familiar with word vectors, you will notice that this small data table looks similar to a single word vector. This vector, however, is a compilation of every word vector from each word in a given tweet. With the example tweet above, the VectorizeTweet() function finds the word vector for the words "two," "airports," "one," "greeen," etc. The VectorizeTweet() function takes the word vector for each word in the tweet and averages each column. In theory, this should provide a mathematical summary for the entire tweet.
+```{r}
+train$avg_vec_50[[1]]
+```
+
 
 
 
 # PCA Analysis on the fastText Tweet Vectors
 
 ### Train PCA Model
+This block of code trains the PCA model exclusively on the avg_vec_50 variable (the average tweet vector for each tweet).
 ```{r}
 # select the average vector column and perform a PCA
 train.pr <- train %>%
@@ -137,6 +138,7 @@ train.pr <- train %>%
 ```
 
 ### Evaluate the PCA Model with 3D Graph
+Here, we create a dataframe with the PCA output for each tweet, paired with the tweet labels and tweet text. The data is then plotted with the three PCA variables on the axes, and color mapped to complaint type. With this visualization, we can see that the PCA model groups complaints and non-complaints well.
 ```{r}
 # create a dataframe with the pca output to examine the first 3 components
 

@@ -7,13 +7,13 @@ A key component to successfuly using twitter data to assess service failures is 
 
 While there are a massive number of methods to perform this task, our team has identified three tools to aid us in our classification: Principal Component Analysis (PCA), FastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been trained on 2,500 tweets labeled 0 for "non-complaint" and 1 for "complaint." We have then tested the model on a similarly-sized dataset.
 
-To use our model, we feed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint.
+To use our model, we fed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint.
 
 Because our model uses three distinct modeling techniques, I will refer to each of these modeling techniques as "sub-models."
 
 # The FastText Sub-Model
 ## Overview
-In this section, we'll be documenting how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
+In this section, we'll document how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
 
 ## Load Packages
 ```{r}
@@ -171,7 +171,7 @@ The hamming loss is the number of wrong labels over the total number of labels. 
 
 # The PCA Sub-Model
 ## Intro to PCA
-The idea behind PCA is that a complex multi-dimensional problem can be boiled down to a single-dimensional problem. For example, what if you had a model that tried to predict a student's grade on a test by looking at how many hours the student studied, how many lectures the student attended, how many hours of sleep they got, what cereal they eat for breakfast, and how many siblings they have. While all of these factors could arguably have an affect on the student's test grade, I would expect the "hours studied" and "lectures attended" variables to have the strongest correlation to test. A PCA model would notice the most important variables of a model, and simplify the model to focus on just two "principle components" (note that it still incorporates the other variables in the model, but these variables have been "simplified" or "compressed")
+The idea behind PCA is that a complex multi-dimensional problem can be boiled down to a single-dimensional problem. For example, let's say you had a model that tried to predict a student's grade on a test by looking at how many hours the student studied, how many lectures the student attended, how many hours of sleep they got, what cereal they eat for breakfast, and how many siblings they have. While all of these factors could arguably have an affect on the student's test grade, I would expect the "hours studied" and "lectures attended" variables to have the strongest correlation to test. A PCA model would notice the most important variables of a model, and simplify the model to focus on just two "principle components" (note that it still incorporates the other variables in the model, but these variables have been "simplified" or "compressed")
 
 With a PCA model, similar results will cluster together, and clusterings can help with classification. With our student example, we would see "A" students cluster together, "B" students to cluster together, etc. While this example might seem like a simple explanation, PCA analysis can be very useful when large amounts of data are available, but you don't know which variables are most important in your classification.
 

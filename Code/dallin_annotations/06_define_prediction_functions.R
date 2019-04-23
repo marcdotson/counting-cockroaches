@@ -39,7 +39,8 @@ TweetFeatures <- function(tweet) {
     mutate(count.char   = nchar(tweet.text),
            log.mentions = log1p(str_count(tweet.text, "@")), # Count user mentions
            log.links    = log1p(str_count(tweet.text, "http:\\/\\/t.co")), # count links
-           count.space  = str_count(tweet.text, " ")) %>% # count exclamation marks
+           count.space  = str_count(tweet.text, " "),
+           count.excla = str_count(tweet.text, "!")) %>% # count exclamation marks
     select(-tweet.text)
 }
 
