@@ -7,7 +7,7 @@ A key component to successfuly using twitter data to assess service failures is 
 
 While there are a massive number of methods to perform this task, our team has identified three tools to aid us in our classification: Principal Component Analysis (PCA), FastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been trained on 2,500 tweets labeled 0 for "non-complaint" and 1 for "complaint." We have then tested the model on a similarly-sized dataset.
 
-To use our model, we fed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint.
+To use our model, we fed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
 
 Because our model uses three distinct modeling techniques, I will refer to each of these modeling techniques as "sub-models."
 
@@ -177,9 +177,26 @@ With a PCA model, similar results will cluster together, and clusterings can hel
 
 For our purposes, we should be able to use PCA analysis by taking large ammounts of data we collect on tweets (their features, their average word vector, etc.) and see a clustering of complaints and non-complaints, without worrying about which features or variables of a tweet are best for classification.
 
-## Useful Resources:
+## Details of the Use of PCA in Our Model
+We wanted to incorporate a PC analysis in our model, hoping that the perspective of a unique model type would aid our model's accuracy. As input, the PCA model needs numerical data, so we needed to convert our character data (tweet text) into numerical data. To do this, we used a fastText model again. Unlike the fastText model above, however, we decided to use an unsupervised fastText model for producing word vectors. 
+
+Ultimately, we used PCA because we wanted to take our text data and process it in a way it could become quantitative data, believing that this would be a better format as an input for our XGBoost model. It is important to note that the PCA model was not capable of predicting complaints vs non-complaints, and never "saw" training labels when we trained it (it was unsupervised). Rather, it processed the textual data to provide quantitative data that grouped complaints and non-complaints fairly well, despite being unaware of the labels.
+
+### Using a fastText Unsupervised Model for Word Vectors
+This model, trained on the tweet text from our training dataset of nearly 5,000 tweets, learns the associations of words by analyzing how frequently pairs of words appear near each other. After running this analysis, the model can produce a word vector for any word -- even words it hadn't seen before. 
+
+What are these word vectors? They represent a mathematical definition of a word. Via a method that is beyond the level of depth we'd like to explain in this paper, the output of this model (a vector containing 50 numbers for each word queried) is a representation of the associations one word has with all other words used in a corpus. Our model was specifically trained to produce word vectors of length 50, but this was simply a parameter we found to be most effective for our purposes (we explored this in the code fasttext_clust_EDA.R). Similar to the PCA model, it is important to note that this model that never "saw" our training labels (i.e. it was unsupervised), and was never capable of predicting complaints and non-complaints. Rather, it processed the textual data to provide a quantitative input for our principal component analysis.
+
+These word vectors also function well with additions and subtractions. For example, with word vectors, king - man + woman = queen. This fact is very useful to us, because it means that if we average the vectors for each word in a tweet, we should end up with a summary of a tweet in a single vector. We created a function that averaged word vectors, named "VectorizeTweet()." The function takes a single tweet, breaks its text down into a dataframe of each word used in the tweet, fetches the word vector for each word in the dataframe, and then averages each column of the vectors. This vectorized tweet summary became the numerical input for our PC analysis.
+
+### Analysis of Principal Components
+Once we had a list-column of average tweet vectors (avg_vec_50), we analyzed its principal components. We started with a 3D visualization of the first three principal components, coloring the tweets by their complaint/non-complaint labels, and found that the complaints and non-complaints grouped well. We also looked at a scree plot and found that four principal components would be effective enough to describe the variance in our data well. 
+
+Once we saw that we should use four principal components, we then trained the PCA model using our dataset of about 5,000 tweets, and used the model to find the values for the four principal components for eqch tweet. This provided another numerical input we used in our next model, the XGboost model.
+
+## Useful Resources for PCA:
 Quick Explanation of PCA: https://www.youtube.com/watch?v=HMOI_lkzW08
-Deeper Explanation of PCA: https://www.youtube.com/watch?v=_UVHneBUBW0
+Slightly Deeper Explanation of PCA: https://www.youtube.com/watch?v=_UVHneBUBW0
 
 # The XGBoost Sub-Model
 
@@ -200,7 +217,12 @@ Random forests are models that take advantaged of the fact that a decision tree 
 ##### Gradient Boosting:
 Gradient Boosting builds on the foundation of random forests by optimizing the model. A gradient boosted random forest systematically analyzes the individual trees of a forest that perform poorly, and focuses on cleaning and improving those trees. With many iterations, a boosted model should improve significantly as it gets trained. XGBoost, the package we use for gradient boosting, is simply one popular tool of many for boosted trees.
 
-## Useful Resources:
+## Our Use of the XGBoost Model
+At this point, we had three sets of quantitative data on our tweets as inputs for our XGboost model: averaged tweet vectors, PCA outputs for four principal components, and a set of tweet features. I haven't mentioned the tweet features yet, but it was a simple step we took to gather crude data on the tweet. We created a function that calculated various details on a tweet, such as the number of spaces, the number of characters, and the number of exclamation points used in a tweet. After we ran this function on each tweet, the data was stored in a list-column called tweetFeatures.
+
+We partitioned our dataset of 5,000 tweets (now processed to include tweet features, a tweet vector, and four principal component values) so that 80% was designated for training, and 20% was designated for testing. We then transformed our tibble of data into a dense matrix (the format required for XGBoost). We trained the XGBoost model, allowed the model to make predictions on our test dataset, and then compared the resulting predictions against our testing dataset's labels using a confusion matrix. We found our XGBoost model to be 87.59% accurate, with 85 false positives, and 38 false negatives.
+
+## Useful Resources for XGBoost:
 When I was first learning about XGBoost, I found these youtube videos to be helpful in explaining the very basic concepts behind boosted trees. Hopefully, they can help you too if you're struggling to follow along. 
 
 Decision Trees: https://www.youtube.com/watch?v=7VeUPuFGJHk
