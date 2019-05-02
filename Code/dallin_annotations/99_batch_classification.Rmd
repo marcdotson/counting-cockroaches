@@ -4,7 +4,7 @@ output: github_document
 ---
 
 # Overview
-These are my annotations on the "batch-classification.R" script written by Adriel.
+These are my annotations on the "batch-classification.R" script written by Adriel. The code here can be used to make predictions on an entire set of tweets, rather than individually.
 
 ```{r}
 library(RPostgreSQL)
