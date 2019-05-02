@@ -255,8 +255,8 @@ dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
 # NOTE: All code below is commented out because this code had trouble knitting
 
 
-# bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), label = as.numeric(train_labels$label), max.depth = 4,
-#                eta = 0.2, nthread = 2, nrounds = 100, objective = logregobj, eval_metric = evalerror)
+bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), label = as.numeric(train_labels$label), max.depth = 4,
+               eta = 0.2, nthread = 2, nrounds = 100, objective = logregobj, eval_metric = evalerror)
 ```
 
 # Analyze the Model
@@ -264,24 +264,24 @@ dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
 ### Get Predictions from the Model
 Here, we let the model make predictions on our test dataset. We then compare the predictions to our actual labels to help us understand accuracy. 
 ```{r}
-# test_data$prediction <- predict(bst, dtest1)
-# 
-# predict(bst, dtest1) %>% map_chr(function(x) ifelse(x > 0, "complaint", "non-complaint"))
-#   
-# 
-# test_data <- test_data %>% 
-#   mutate(predict_label = case_when(prediction > 0 ~ "Complaint",
-#                                    TRUE ~ "Non-complaint"),
-#          complaint_label = case_when(complaint_label == 1 ~ "Complaint",
-#                                    TRUE ~ "Non-complaint")) %>% 
-#   mutate(accuracy = predict_label == complaint_label)
+test_data$prediction <- predict(bst, dtest1)
+
+predict(bst, dtest1) %>% map_chr(function(x) ifelse(x > 0, "complaint", "non-complaint"))
+
+
+test_data <- test_data %>%
+  mutate(predict_label = case_when(prediction > 0 ~ "Complaint",
+                                   TRUE ~ "Non-complaint"),
+         complaint_label = case_when(complaint_label == 1 ~ "Complaint",
+                                   TRUE ~ "Non-complaint")) %>%
+  mutate(accuracy = predict_label == complaint_label)
 ```
 
 
 ### Look at the Confusion Matrix
 This Confusion matrix helps us see how many false postives and false negatives we had. For example, there were 85 instances where a tweet was predicted as a complaint, but it was not (false positive), and 38 instances where a complaint was not predicted to be a complaint, when it actually was (false negative). Overall, the model had an 87.59% accuracy, which seems pretty good to me.  
 ```{r}
-# confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
+confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
 
 # The document had trouble knitting after knitting, so I've copied and pasted the output of the code from the line above.
 
