@@ -1,19 +1,27 @@
 ---
-title: "Classifier"
+title: "Classifier Explanation"
 output: github_document
 ---
+```{r include = FALSE}
+library(tidyverse)
+library(caret)
+library(xgboost)
+library(Matrix)
+
+train <- read_csv(here::here("Temporary", "Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv"))
+```
 # The Classification Model
 A key component to successfuly using twitter data to assess service failures is the ability to classify tweets as complaints and non-complaints. If our team can accurately classify a tweet, we will be capable of tackling the greater issue of judging how serious the complaint is, and whether or not a company needs to take action.
 
-While there are a massive number of methods to perform this task, our team has identified three tools to aid us in our classification: Principal Component Analysis (PCA), FastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been trained on 2,500 tweets labeled 0 for "non-complaint" and 1 for "complaint." We have then tested the model on a similarly-sized dataset.
+While many methods available can aid us in this task, our team has identified three tools to help us perform our classification: Principal Component Analysis (PCA), fastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been tested and trained on `r nrow(train) # the number of tweets in our training dataset` tweets labeled 0 for "non-complaint" and 1 for "complaint." We partitioned the data so that about 80% was used for training, and 20% for testing.
 
-To use our model, we fed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
+To use our model, we fed a set of tweets into a PCA model. The output of the PCA model (unsupervised) was then fed into an XGBoost model (supervised). Simultaneously, we fed the same set of tweets into a fastText classification model (supervised). The frankenstien model then compares predictions of the XGBoost and fastText models, and makes a final prediction. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
 
 Because our model uses three distinct modeling techniques, I will refer to each of these modeling techniques as "sub-models."
 
-# The FastText Sub-Model
+# The fastText Sub-Model
 ## Overview
-In this section, we'll document how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
+In this section, we will document how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
 
 ## Load Packages
 ```{r}
@@ -119,8 +127,6 @@ After we train the model, we'll load the model into our environment.
 
 You can find more information about the parameters of the model (such as -dim, -lr, and -epoch) here: https://fasttext.cc/docs/en/options.html.
 
-!!!!!! Considering that this is such a large dataset, it might be worthwhile to use -loss hs (hierarchical softmax) to speed up the training. It should not significantly affect accuracy. 
-
 ```{r}
 # train model
 # execute(commands = c("supervised", "-input", train_data_path, "-output", file_model, "-dim", 20, "-lr", 1, "-epoch", 20, "-wordNgrams", 2, "-verbose", 1))
@@ -190,7 +196,13 @@ What are these word vectors? They represent a mathematical definition of a word.
 These word vectors also function well with additions and subtractions. For example, with word vectors, king - man + woman = queen. This fact is very useful to us, because it means that if we average the vectors for each word in a tweet, we should end up with a summary of a tweet in a single vector. We created a function that averaged word vectors, named "VectorizeTweet()." The function takes a single tweet, breaks its text down into a dataframe of each word used in the tweet, fetches the word vector for each word in the dataframe, and then averages each column of the vectors. This vectorized tweet summary became the numerical input for our PC analysis.
 
 ### Analysis of Principal Components
-Once we had a list-column of average tweet vectors (avg_vec_50), we analyzed its principal components. We started with a 3D visualization of the first three principal components, coloring the tweets by their complaint/non-complaint labels, and found that the complaints and non-complaints grouped well. We also looked at a scree plot and found that four principal components would be effective enough to describe the variance in our data well. 
+Once we had a list-column of average tweet vectors (avg_vec_50), we analyzed its principal components. We started with a 3D visualization of the first three principal components, coloring the tweets by their complaint/non-complaint labels, and found that the complaints and non-complaints grouped well.
+
+![3D visualization of first three principal components.](../Figures/3D_PCA.png)
+
+We also looked at a scree plot and found that four principal components would be effective enough to describe the variance in our data well. 
+
+![Scree plot.](../Figures/screeplot.png)
 
 Once we saw that we should use four principal components, we then trained the PCA model using our dataset of about 5,000 tweets, and used the model to find the values for the four principal components for eqch tweet. This provided another numerical input we used in our next model, the XGboost model.
 
@@ -221,6 +233,47 @@ Gradient Boosting builds on the foundation of random forests by optimizing the m
 At this point, we had three sets of quantitative data on our tweets as inputs for our XGboost model: averaged tweet vectors, PCA outputs for four principal components, and a set of tweet features. I haven't mentioned the tweet features yet, but it was a simple step we took to gather crude data on the tweet. We created a function that calculated various details on a tweet, such as the number of spaces, the number of characters, and the number of exclamation points used in a tweet. After we ran this function on each tweet, the data was stored in a list-column called tweetFeatures.
 
 We partitioned our dataset of 5,000 tweets (now processed to include tweet features, a tweet vector, and four principal component values) so that 80% was designated for training, and 20% was designated for testing. We then transformed our tibble of data into a dense matrix (the format required for XGBoost). We trained the XGBoost model, allowed the model to make predictions on our test dataset, and then compared the resulting predictions against our testing dataset's labels using a confusion matrix. We found our XGBoost model to be 87.59% accurate, with 85 false positives, and 38 false negatives.
+
+```{r include = FALSE}
+source(here::here("Code", "dallin_annotations", "06_define_prediction_functions.R"))
+      
+load(here::here("Output", "train_data.dat"))
+
+trainIndex <- createDataPartition(train$complaint_label, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+
+test_data <- train[-trainIndex,]
+test_labels <- test_data %>% select(complaint_label) %>% transmute(label = complaint_label)
+test_data_vec <- test_data %>%  select(tweetFeatures, avg_vec_50, avg_vec_50_PCA) %>% unnest %>% mutate_all(as.numeric)
+
+train_data <- train[trainIndex,]
+train_labels <- train_data %>% select(complaint_label) %>% transmute(label = complaint_label)
+train_data_vec <- train_data %>%  select(tweetFeatures, avg_vec_50, avg_vec_50_PCA) %>% unnest %>% mutate_all(as.numeric)
+
+dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
+
+bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), label = as.numeric(train_labels$label), max.depth = 4,
+               eta = 0.2, nthread = 2, nrounds = 100, objective = logregobj, eval_metric = evalerror)
+
+test_data$prediction <- predict(bst, dtest1)
+
+predict(bst, dtest1) %>% map_chr(function(x) ifelse(x > 0, "complaint", "non-complaint"))
+
+test_data <- test_data %>%
+  mutate(predict_label = case_when(prediction > 0 ~ "Complaint",
+                                   TRUE ~ "Non-complaint"),
+         complaint_label = case_when(complaint_label == 1 ~ "Complaint",
+                                   TRUE ~ "Non-complaint")) %>%
+
+    mutate(accuracy = predict_label == complaint_label)
+```
+
+Confusion matrix output:
+```{r}
+confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
+```
+
 
 ## Useful Resources for XGBoost:
 When I was first learning about XGBoost, I found these youtube videos to be helpful in explaining the very basic concepts behind boosted trees. Hopefully, they can help you too if you're struggling to follow along. 

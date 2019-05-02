@@ -1,4 +1,4 @@
-Classifier
+Classifier Explanation
 ================
 
 The Classification Model
@@ -6,13 +6,13 @@ The Classification Model
 
 A key component to successfuly using twitter data to assess service failures is the ability to classify tweets as complaints and non-complaints. If our team can accurately classify a tweet, we will be capable of tackling the greater issue of judging how serious the complaint is, and whether or not a company needs to take action.
 
-While there are a massive number of methods to perform this task, our team has identified three tools to aid us in our classification: Principal Component Analysis (PCA), FastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been trained on 2,500 tweets labeled 0 for "non-complaint" and 1 for "complaint." We have then tested the model on a similarly-sized dataset.
+While many methods available can aid us in this task, our team has identified three tools to help us perform our classification: Principal Component Analysis (PCA), FastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been tested and trained on 4959 tweets labeled 0 for "non-complaint" and 1 for "complaint." We partitioned the data so that about 80% was used for training, and 20% for testing.
 
 To use our model, we fed a set of tweets into a PCA model and a FastText classification model. The output of these two models is then fed into our XGBoost model, which makes a binary prediction for the tweet as a complaint or non-complaint. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
 
 Because our model uses three distinct modeling techniques, I will refer to each of these modeling techniques as "sub-models."
 
-The FastText Sub-Model
+The fastText Sub-Model
 ======================
 
 Overview
@@ -218,7 +218,13 @@ These word vectors also function well with additions and subtractions. For examp
 
 ### Analysis of Principal Components
 
-Once we had a list-column of average tweet vectors (avg\_vec\_50), we analyzed its principal components. We started with a 3D visualization of the first three principal components, coloring the tweets by their complaint/non-complaint labels, and found that the complaints and non-complaints grouped well. We also looked at a scree plot and found that four principal components would be effective enough to describe the variance in our data well.
+Once we had a list-column of average tweet vectors (avg\_vec\_50), we analyzed its principal components. We started with a 3D visualization of the first three principal components, coloring the tweets by their complaint/non-complaint labels, and found that the complaints and non-complaints grouped well.
+
+![3D visualization of first three principal components.](../Figures/3D_PCA.png)
+
+We also looked at a scree plot and found that four principal components would be effective enough to describe the variance in our data well.
+
+![Scree plot.](../Figures/screeplot.png)
 
 Once we saw that we should use four principal components, we then trained the PCA model using our dataset of about 5,000 tweets, and used the model to find the values for the four principal components for eqch tweet. This provided another numerical input we used in our next model, the XGboost model.
 
@@ -257,6 +263,40 @@ Our Use of the XGBoost Model
 At this point, we had three sets of quantitative data on our tweets as inputs for our XGboost model: averaged tweet vectors, PCA outputs for four principal components, and a set of tweet features. I haven't mentioned the tweet features yet, but it was a simple step we took to gather crude data on the tweet. We created a function that calculated various details on a tweet, such as the number of spaces, the number of characters, and the number of exclamation points used in a tweet. After we ran this function on each tweet, the data was stored in a list-column called tweetFeatures.
 
 We partitioned our dataset of 5,000 tweets (now processed to include tweet features, a tweet vector, and four principal component values) so that 80% was designated for training, and 20% was designated for testing. We then transformed our tibble of data into a dense matrix (the format required for XGBoost). We trained the XGBoost model, allowed the model to make predictions on our test dataset, and then compared the resulting predictions against our testing dataset's labels using a confusion matrix. We found our XGBoost model to be 87.59% accurate, with 85 false positives, and 38 false negatives.
+
+Confusion matrix output:
+
+``` r
+confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
+```
+
+    ## Confusion Matrix and Statistics
+    ## 
+    ##                Reference
+    ## Prediction      Complaint Non-complaint
+    ##   Complaint           221            67
+    ##   Non-complaint        49           654
+    ##                                           
+    ##                Accuracy : 0.8829          
+    ##                  95% CI : (0.8613, 0.9023)
+    ##     No Information Rate : 0.7275          
+    ##     P-Value [Acc > NIR] : <2e-16          
+    ##                                           
+    ##                   Kappa : 0.7108          
+    ##                                           
+    ##  Mcnemar's Test P-Value : 0.1145          
+    ##                                           
+    ##             Sensitivity : 0.8185          
+    ##             Specificity : 0.9071          
+    ##          Pos Pred Value : 0.7674          
+    ##          Neg Pred Value : 0.9303          
+    ##              Prevalence : 0.2725          
+    ##          Detection Rate : 0.2230          
+    ##    Detection Prevalence : 0.2906          
+    ##       Balanced Accuracy : 0.8628          
+    ##                                           
+    ##        'Positive' Class : Complaint       
+    ## 
 
 Useful Resources for XGBoost:
 -----------------------------
