@@ -14,7 +14,7 @@ model50-tweet_sample_2M_noRT.dat
 xgb.modelPC4-xgb_version.dat
 
 # Libraries
-```{r}
+```{r echo = FALSE}
 library(tidyverse)
 library(fastrtext)
 library(magrittr) # for assignment operator %<>%  Dallin: I will try to remove the use of %<>% to comply with the tidyverese stylguide.
@@ -84,13 +84,9 @@ map(nn_words, function(x) model_eval_plot_wrap(x[1], fasttext_model, filter_str 
 ```
 
 # Create Average word Vectors
-Here, our training dataset is brought in. With the data loaded, we featureize the tweets and create average tweet vectors. The features of the tweets and average vectors are stored inside a list-column to help organize our data well.
-
+Similar to the previous model, we need to create average tweet vectors for each tweet.
 ```{r}
 # Predict and average word vectors for tweets -----------------------------
-
-# read in labeled traing data
-# train <- read_csv("data/Marketing Research Labeled Tweets All 12-05-18.csv") This was Adriel's code, but I have the data stored somewhere else.
 
 # I believe the file I'm linking to will be similar to the one that Adriel linked imported above (commented out).
 train <- read_csv(here::here("Temporary", "Marketing Research Labeled Tweets_ - tweet_sample_5k_Ky-Ch-Ad.csv"))
@@ -145,7 +141,7 @@ train.pr <- train %>%
 
 ### Evaluate the PCA Model with 3D Graph
 Here, we create a dataframe with the PCA output for each tweet, paired with the tweet labels and tweet text. The data is then plotted with the three PCA variables on the axes, and color mapped to complaint type. With this visualization, we can see that the PCA model groups complaints and non-complaints well.
-```{r}
+```{r error = TRUE}
 # create a dataframe with the pca output to examine the first 3 components
 
 # Dallin: This visualization of the PCA model was commented out because it caused problems with knitting.
@@ -210,6 +206,11 @@ save(train, file = here::here("Output", "train_data.dat"))
 rm(list = ls())
 
 load(here::here("Output", "train_data.dat"))
+
+
+source("05_define_clustering_functions.R")
+source("06_define_prediction_functions.R")
+
 ```
 
 
@@ -251,7 +252,7 @@ dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
 
 ### Set the Parameters of the Model and Begin Training
 
-```{r}
+```{r error = TRUE}
 # NOTE: All code below is commented out because this code had trouble knitting
 
 
@@ -263,7 +264,7 @@ bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), label = as.nume
 
 ### Get Predictions from the Model
 Here, we let the model make predictions on our test dataset. We then compare the predictions to our actual labels to help us understand accuracy. 
-```{r}
+```{r error = TRUE}
 test_data$prediction <- predict(bst, dtest1)
 
 predict(bst, dtest1) %>% map_chr(function(x) ifelse(x > 0, "complaint", "non-complaint"))
@@ -278,9 +279,17 @@ test_data <- test_data %>%
 ```
 
 
+Visualization of the Test Data
+```{r}
+test_data %>% 
+  ggplot(aes(x = complaint_label, fill = predict_label)) +
+  geom_bar()
+```
+
+
 ### Look at the Confusion Matrix
 This Confusion matrix helps us see how many false postives and false negatives we had. For example, there were 85 instances where a tweet was predicted as a complaint, but it was not (false positive), and 38 instances where a complaint was not predicted to be a complaint, when it actually was (false negative). Overall, the model had an 87.59% accuracy, which seems pretty good to me.  
-```{r}
+```{r error = TRUE}
 confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_label))
 
 # The document had trouble knitting after knitting, so I've copied and pasted the output of the code from the line above.
