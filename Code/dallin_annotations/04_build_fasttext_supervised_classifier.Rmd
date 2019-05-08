@@ -8,6 +8,8 @@ output: github_document
 # Overview
 In this R Markdown, we'll be documenting how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
 
+The supervised model built in this script is not used in the "frankenstien model." Instead, it is a standalone classification model. This is a way for us to compare the frankenstien model's performance to a "baseline."
+
 # Load Packages
 ```{r}
 library(fastrtext)
@@ -73,8 +75,6 @@ test_train_data <- tweet_data %>%
 ### Create the .txt Files
 As mentioned earlier, we need to create a text file of our training and test datasets because the fastText model only takes character vectors as inputs. With our data labeled both for training/test and complaint/non-complaint, we're ready to do this. We will use the write_lines() function to do this. The train_data_path is the file location we specified earlier in this script. 
 
-!!!!!!!!!! I'm still not sure how we are using the test_labels_without_prefix. If its not the test data, what is it?
-
 ```{r}
 # write train data
 train_data_lines <- test_train_data %>%
@@ -104,14 +104,11 @@ The package we are using (fastrtext) uses the execute() function to train the mo
 
 After we train the model, we'll load the model into our environment.
 
-
 "supervised" specifies that this is a supervised model (classification, as opposed to creating word vectors). 
 "-input" specifies the file location of the training text files.
 "-output" specifies the file location where we want to place our model, once it has finished training.
 
 You can find more information about the parameters of the model (such as -dim, -lr, and -epoch) here: https://fasttext.cc/docs/en/options.html.
-
-!!!!!! Considering that this is such a large dataset, it might be worthwhile to use -loss hs (hierarchical softmax) to speed up the training. It should not significantly affect accuracy. 
 
 ```{r}
 # train model
@@ -130,73 +127,46 @@ predictions <- predict(model, sentences = test_data_lines, simplify = TRUE, unlo
 head(predictions, 5)
 ```
 
-This will help us confirm that our model worked as expected. The predictions are shorter than the test dataset, so I'm not sure what happened. According to some errors I've seen, I think it's because a few tweets use vocabulary that was not included in the training dataset.
+Below we compare the length of the list of predictions to the length of the testing dataset. Ideally, these should have the same length. This will help us confirm that our model worked as expected.
+
 ```{r}
 length(predictions)
 length(test_labels_without_prefix)
 length(test_data_lines)
 ```
 
-A second attempt to make predictions:
-```{r error = TRUE}
+Unexpectedly, the predictions are shorter than the test dataset, so I'm not sure what happened. According to some errors I've seen, I think it's because a few tweets use vocabulary that was not included in the training dataset.
+
+Below, we merge the predictions with our testing dataset, preparing the data for visualizations.
+```{r}
+new_predictions <- attributes(predictions)$names
+
 tested <- test_train_data %>% 
   filter(test_train == "test") %>% 
   mutate(prediction = predict(model, tweet_text, unlock_empty_predictions = TRUE)) %>% 
   unnest(prediction) %>% 
-  mutate(rounded_prediction = round(prediction),
-         correct            = case_when(complaint_label == rounded_prediction ~ TRUE,
-                                        complaint_label != rounded_prediction ~ FALSE))
+  mutate(new_predictions = new_predictions,
+         correct = case_when(label == new_predictions ~ TRUE,
+                             label != new_predictions ~ FALSE))
 ```
+
 
 Visualization of Outputs:
-From this graph, apparently I messed up somewhere in making predictions, because the predictions being made seem to have no correlation with the actual complaint label. It could be that, or the fastText model needs significantly more text to train and be accurate. 
+Below, we have a bar graph of our testing data and the model's predictions. The columns represent the labels from our testing dataset. The fill is the model's predictions. We see that the model seems to make a lot of false positives, but provides almost no false negatives. 
 ```{r}
 tested %>% 
-  ggplot(aes(x = row_number(tweet_text), y = prediction, color = complaint_label, alpha = 0.1)) +
-  geom_point()
+  ggplot(aes(x = label, fill = new_predictions)) +
+  geom_bar()
 ```
 
-Is the list "predictions" the same as the "prediction" variable in tested?
+## Accuracy
+Let's look at how accurately the model predicted binary complaints.
 ```{r}
-are_they_same <- c(tested$prediction[[3]],
-                   predictions[[3]],
-                   tested$prediction[[300]],
-                   predictions[[300]])
-
-(are_they_same)
+tested %>% 
+  summarise(accuracy = mean(correct))
 ```
-The predictions are exactly the same from both sets, so I guess the classifier was just bad?
+It looks like this model is about 60% accurate. This isn't great, but it's better than flipping a coin. Perhaps the model will perform significantly better with a larger dataset for training and testing.
 
-
-I'll try to use our fasttext model using bash.
-Navigate to the right directory of the model:
-```{bash error = TRUE}
-cd ../../Output/models/class_mod_1.bin
-ls
-```
-
-```{bash error = TRUE}
-./fasttext predict ../../Output/models/class_mod_1.bin - @delta you are the worst airline. Thanks for delaying my flight
-```
-This didn't work
-
-Second attempt to make predictions using bash
-```{bash error = TRUE}
-cd ../../Output/models
-
-./fasttext predict class_mod_1.bin - @delta you are the worst airline. Thanks for delaying my flight
-```
-
-
-Third attempt to make predictions using bash.
-```{bash error = TRUE}
-cd ../../../../../../fasttext/fastText-0.2.0
-ls
-```
-
-
-f## Accuracy
-Let's look at how accurately the model predicted names
 ```{r error = TRUE}
 # Compute accuracy
 mean(names(unlist(predictions)) == test_labels_without_prefix, na.rm = TRUE)
@@ -217,5 +187,3 @@ print(head(predictions, 5))
 print(head(predict(model, sentences = test_to_write, simplify = TRUE)))
 ```
 
-
-# Analysis

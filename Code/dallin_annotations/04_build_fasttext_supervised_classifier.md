@@ -8,6 +8,8 @@ Overview
 
 In this R Markdown, we'll be documenting how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext\_supervised\_classifier.R script.
 
+The supervised model built in this script is not used in the "frankenstien model." Instead, it is a standalone classification model. This is a way for us to compare the frankenstien model's performance to a "baseline."
+
 Load Packages
 =============
 
@@ -107,8 +109,6 @@ test_train_data <- tweet_data %>%
 
 As mentioned earlier, we need to create a text file of our training and test datasets because the fastText model only takes character vectors as inputs. With our data labeled both for training/test and complaint/non-complaint, we're ready to do this. We will use the write\_lines() function to do this. The train\_data\_path is the file location we specified earlier in this script.
 
-!!!!!!!!!! I'm still not sure how we are using the test\_labels\_without\_prefix. If its not the test data, what is it?
-
 ``` r
 # write train data
 train_data_lines <- test_train_data %>%
@@ -144,8 +144,6 @@ After we train the model, we'll load the model into our environment.
 
 You can find more information about the parameters of the model (such as -dim, -lr, and -epoch) here: <https://fasttext.cc/docs/en/options.html>.
 
-!!!!!! Considering that this is such a large dataset, it might be worthwhile to use -loss hs (hierarchical softmax) to speed up the training. It should not significantly affect accuracy.
-
 ``` r
 # train model
 execute(commands = c("supervised", "-input", train_data_path, "-output", model_path, "-dim", 20, "-lr", 1, "-epoch", 20, "-wordNgrams", 2, "-verbose", 1))
@@ -156,7 +154,7 @@ execute(commands = c("supervised", "-input", train_data_path, "-output", model_p
     ## Number of words:  16178
     ## Number of labels: 2
     ## 
-    Progress: 100.0% words/sec/thread:  348786 lr:  0.000000 loss:  0.031188 ETA:   0h 0m
+    Progress: 100.0% words/sec/thread:  358148 lr:  0.000000 loss:  0.036811 ETA:   0h 0m
 
 ``` r
 # load model
@@ -178,9 +176,9 @@ head(predictions, 5)
 ```
 
     ##     complaint     complaint     complaint non-complaint     complaint 
-    ##     1.0000100     0.9999804     0.6535602     0.8698740     1.0000057
+    ##     1.0000085     0.9999776     0.7840689     0.9052355     1.0000043
 
-This will help us confirm that our model worked as expected. The predictions are shorter than the test dataset, so I'm not sure what happened. According to some errors I've seen, I think it's because a few tweets use vocabulary that was not included in the training dataset.
+Below we compare the length of the list of predictions to the length of the testing dataset. Ideally, these should have the same length. This will help us confirm that our model worked as expected.
 
 ``` r
 length(predictions)
@@ -200,136 +198,48 @@ length(test_data_lines)
 
     ## [1] 1018
 
-A second attempt to make predictions:
+Unexpectedly, the predictions are shorter than the test dataset, so I'm not sure what happened. According to some errors I've seen, I think it's because a few tweets use vocabulary that was not included in the training dataset.
+
+Below, we merge the predictions with our testing dataset, preparing the data for visualizations.
 
 ``` r
+new_predictions <- attributes(predictions)$names
+
 tested <- test_train_data %>% 
   filter(test_train == "test") %>% 
   mutate(prediction = predict(model, tweet_text, unlock_empty_predictions = TRUE)) %>% 
   unnest(prediction) %>% 
-  mutate(rounded_prediction = round(prediction),
-         correct            = case_when(complaint_label == rounded_prediction ~ TRUE,
-                                        complaint_label != rounded_prediction ~ FALSE))
+  mutate(new_predictions = new_predictions,
+         correct = case_when(label == new_predictions ~ TRUE,
+                             label != new_predictions ~ FALSE))
 ```
 
-Visualization of Outputs: From this graph, apparently I messed up somewhere in making predictions, because the predictions being made seem to have no correlation with the actual complaint label. It could be that, or the fastText model needs significantly more text to train and be accurate.
+Visualization of Outputs: Below, we have a bar graph of our testing data and the model's predictions. The columns represent the labels from our testing dataset. The fill is the model's predictions. We see that the model seems to make a lot of false positives, but provides almost no false negatives.
 
 ``` r
 tested %>% 
-  ggplot(aes(x = row_number(tweet_text), y = prediction, color = complaint_label, alpha = 0.1)) +
-  geom_point()
+  ggplot(aes(x = label, fill = new_predictions)) +
+  geom_bar()
 ```
 
 ![](04_build_fasttext_supervised_classifier_files/figure-markdown_github/unnamed-chunk-10-1.png)
 
-Is the list "predictions" the same as the "prediction" variable in tested?
+Accuracy
+--------
+
+Let's look at how accurately the model predicted binary complaints.
 
 ``` r
-are_they_same <- c(tested$prediction[[3]],
-                   predictions[[3]],
-                   tested$prediction[[300]],
-                   predictions[[300]])
-
-(are_they_same)
+tested %>% 
+  summarise(accuracy = mean(correct))
 ```
 
-    ## [1] 0.6535602 0.6535602 0.9821092 0.9821092
+    ## # A tibble: 1 x 1
+    ##   accuracy
+    ##      <dbl>
+    ## 1    0.625
 
-The predictions are exactly the same from both sets, so I guess the classifier was just bad?
-
-I'll try to use our fasttext model using bash. Navigate to the right directory of the model:
-
-``` bash
-cd ../../Output/models/class_mod_1.bin
-ls
-```
-
-    ## bash: line 0: cd: ../../Output/models/class_mod_1.bin: No such file or directory
-    ## 01_test_rds_connection.R
-    ## 02_visualize_twitter_data.Rmd
-    ## 03_analyze_complaint_categories.Rmd
-    ## 04_build_fasttext_supervised_classifier.Rmd
-    ## 04_build_fasttext_supervised_classifier.md
-    ## 04_build_fasttext_supervised_classifier_files
-    ## 05_define_clustering_functions.R
-    ## 06_define_prediction_functions.R
-    ## 07_build_classifier.Rmd
-    ## 07_build_classifier.md
-    ## 07_build_classifier_files
-    ## 08_define_tweet_complaint_predictor_function.r
-    ## 09_classifier_testing.Rmd
-    ## 99_batch_classification.Rmd
-    ## 99_build_standalone_fasttext_classification_model.Rmd
-    ## 99_fasttext_clust_EDA.Rmd
-    ## 99_json_parse_upload.Rmd
-    ## 99_logit_regression_classifier.Rmd
-    ## 99_read_tweets_json.Rmd
-    ## 99_tweet_object.Rmd
-    ## README.Rmd
-    ## README.md
-
-``` bash
-./fasttext predict ../../Output/models/class_mod_1.bin - @delta you are the worst airline. Thanks for delaying my flight
-```
-
-    ## Error in running command bash
-
-This didn't work
-
-Second attempt to make predictions using bash
-
-``` bash
-cd ../../Output/models
-
-./fasttext predict class_mod_1.bin - @delta you are the worst airline. Thanks for delaying my flight
-```
-
-    ## Error in running command bash
-
-Third attempt to make predictions using bash.
-
-``` bash
-cd ../../../../../../fasttext/fastText-0.2.0
-ls
-```
-
-    ## CMakeLists.txt
-    ## CONTRIBUTING.md
-    ## LICENSE
-    ## MANIFEST.in
-    ## Makefile
-    ## README.md
-    ## alignment
-    ## args.o
-    ## classification-example.sh
-    ## classification-results.sh
-    ## dictionary.o
-    ## docs
-    ## eval.py
-    ## fasttext
-    ## fasttext.o
-    ## get-wikimedia.sh
-    ## matrix.o
-    ## meter.o
-    ## model.o
-    ## pretrained-vectors.md
-    ## productquantizer.o
-    ## python
-    ## qmatrix.o
-    ## quantization-example.sh
-    ## runtests.py
-    ## scripts
-    ## setup.cfg
-    ## setup.py
-    ## src
-    ## tests
-    ## utils.o
-    ## vector.o
-    ## website
-    ## wikifil.pl
-    ## word-vector-example.sh
-
-f\#\# Accuracy Let's look at how accurately the model predicted names
+It looks like this model is about 60% accurate. This isn't great, but it's better than flipping a coin. Perhaps the model will perform significantly better with a larger dataset for training and testing.
 
 ``` r
 # Compute accuracy
@@ -339,7 +249,7 @@ mean(names(unlist(predictions)) == test_labels_without_prefix, na.rm = TRUE)
     ## Warning in names(unlist(predictions)) == test_labels_without_prefix: longer
     ## object length is not a multiple of shorter object length
 
-    ## [1] 0.4626719
+    ## [1] 0.4744597
 
 Here, we'll look at the hamming loss, and a few of the predictions.
 
@@ -364,7 +274,7 @@ print(head(predictions, 5))
 ```
 
     ##     complaint     complaint     complaint non-complaint     complaint 
-    ##     1.0000100     0.9999804     0.6535602     0.8698740     1.0000057
+    ##     1.0000085     0.9999776     0.7840689     0.9052355     1.0000043
 
 ``` r
 # you can get flat list of results when you are retrieving only one label per observation
@@ -372,6 +282,3 @@ print(head(predict(model, sentences = test_to_write, simplify = TRUE)))
 ```
 
     ## Error in object$predict(sentences, k, threshold): object 'test_to_write' not found
-
-Analysis
-========
