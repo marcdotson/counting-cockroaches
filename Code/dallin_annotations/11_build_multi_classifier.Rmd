@@ -1,0 +1,150 @@
+---
+title: "Building a Frankenstien Classification Model for Multiple Complaint Labels"
+output: github_document
+---
+
+# Overview
+In this document, I will try to make a classification model similar to the one in 07_build_classifier.Rmd. The difference here will be that I will attempt to build a classification model meant to predict based on a set of many complaint categories.
+
+# Libraries and Scripts
+```{r echo = FALSE}
+library(tidyverse)
+library(fastrtext)
+library(magrittr)
+library(plotly)
+require(randomForest)
+library(Matrix)
+library(xgboost)
+library(caret)
+library(car)
+
+set.seed(42)
+
+source("05_define_clustering_functions.R")
+source("06_define_prediction_functions.R")
+```
+
+## Load the Training Dataset
+This dataset was created in file 07_build_classifier.Rmd
+```{r}
+load(here::here("Output", "train_data.dat"))
+```
+
+Modify the training dataset to make it ready for a multi classification
+```{r}
+train <- train %>% 
+  mutate(complaint_category_name = complaint_category) %>% 
+  mutate(complaint_category = case_when(complaint_category_name == "non_complaint"         ~ 1,
+                                        complaint_category_name == "delay_delay"           ~ 2,
+                                        complaint_category_name == "event_specific"        ~ 3,
+                                        complaint_category_name == "event_vague"           ~ 4,
+                                        complaint_category_name == "human_service_rude"    ~ 5,
+                                        complaint_category_name == "baggage"               ~ 6,
+                                        complaint_category_name == "app_failure"           ~ 7,
+                                        complaint_category_name == "delay_cancel"          ~ 8,
+                                        complaint_category_name == "human_service_hold"    ~ 9,
+                                        complaint_category_name == "delay_tarmac"          ~ 10,
+                                        complaint_category_name == "wishlist"              ~ 11,
+                                        complaint_category_name == "check_failure"         ~ 12))
+```
+
+I will make sure that the mutated data matches the original data.
+```{r}
+train %>% 
+  count(complaint_category_name, complaint_category, sort = TRUE) %>% 
+  mutate(complaint_category_name = reorder(complaint_category_name, n))
+```
+We see that every datapoint has been matched, so we're good!
+
+
+## Partition the Dataset
+```{r}
+trainIndex <- createDataPartition(train$complaint_category, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+
+test_data <- train[-trainIndex,]
+test_labels <- test_data %>% select(complaint_category) %>% transmute(label = complaint_category)
+test_data_vec <- test_data %>%  select(tweetFeatures, avg_vec_50, avg_vec_50_PCA) %>% unnest %>% mutate_all(as.numeric)
+
+train_data <- train[trainIndex,]
+train_labels <- train_data %>% select(complaint_category) %>% transmute(label = complaint_category)
+train_data_vec <- train_data %>%  select(tweetFeatures, avg_vec_50, avg_vec_50_PCA) %>% unnest %>% mutate_all(as.numeric)
+```
+
+
+## Create Dense Matricies for XGBoost
+```{r}
+dtest1 <- xgb.DMatrix(sparse.model.matrix(~.-1, test_data_vec))
+```
+
+## Set the Parameters of the Model and Begin Training
+```{r error = TRUE}
+bst <- xgboost(data = sparse.model.matrix(~.-1, train_data_vec), 
+               label = as.factor(train_labels$label),
+               max.depth = 4, 
+               eta = 0.2, 
+               nthread = 2, 
+               nrounds = 100, 
+               num_class = 13,
+               objective = "multi:softmax",
+               eval_metric = evalerror)
+```
+The train-error does not improve with iterations, which is concerning to me.
+
+
+`# Get Predictions on the Model
+```{r error = TRUE}
+test_data$prediction <- predict(bst, dtest1)
+
+predict(bst, dtest1)
+```
+
+!!!!! I messed up on the predictions and will need to come back to this to see how to fix it.
+
+```{r error = TRUE}
+test_data %>% 
+  ggplot(aes(x = as.factor(complaint_category), fill = as.factor(prediction))) +
+  geom_bar() +
+  coord_flip()
+```
+We see that the model isn't especially accurate, but also that for many test labels, the majority of the predicitions (that aren't non complaints) are correct (i.e. 1 matches 1, 2 matches 2, 4 matches 4, etc.). The model could definitely be improved, but it performs better than rolling the dice.
+
+## Accuracy
+```{r}
+test_data <- test_data %>% 
+  mutate(correct = complaint_category == prediction)
+
+test_data %>% 
+  summarise(mean(correct))
+```
+The model is 76% accurate, which is suprisingly good! It definitely has room for improvement though. I would guess that the model's ability to correctly estimate the majority of non complaints has helped the model perform well.
+
+How does the model perform when we focus solely on complaints though?
+
+Visualization of complaint categories:
+```{r}
+test_data %>% 
+  filter(complaint_category != 1) %>% 
+  ggplot(aes(x = as.factor(complaint_category), fill = as.factor(prediction))) +
+  geom_bar() +
+  coord_flip()
+```
+
+Accuracy of non-complaint predictions:
+```{r}
+test_data %>% 
+  filter(complaint_category != 1) %>% 
+  summarise(mean(correct))
+```
+It appears that when predicting non-complaints, the model is only accurate about 25% of the time. This is very poor, but better than rolling the dice.
+
+```{r error = TRUE}
+confusionMatrix(factor(test_data$complaint_category), factor(test_data$prediction))
+```
+
+
+
+
+
+
