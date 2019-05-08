@@ -15,11 +15,13 @@ A key component to successfuly using twitter data to assess service failures is 
 
 While many methods available can aid us in this task, our team has identified three tools to help us perform our classification: Principal Component Analysis (PCA), fastText, and XGBoost. Using these three tools, we've created a "frankenstein model" that incorporates all three tools listed above. The model has been tested and trained on `r nrow(train) # the number of tweets in our training dataset` tweets labeled 0 for "non-complaint" and 1 for "complaint." We partitioned the data so that about 80% was used for training, and 20% for testing.
 
-To use our model, we fed a set of tweets into a PCA model. The output of the PCA model (unsupervised) was then fed into an XGBoost model (supervised). Simultaneously, we fed the same set of tweets into a fastText classification model (supervised). The frankenstien model then compares predictions of the XGBoost and fastText models, and makes a final prediction. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
+To use our model, we fed a set of tweets into a fastText word representations model (unsupervised). After summarizing the ouput of this model, we take the fastText model output and send it through a PCA model. The output of the PCA model (unsupervised) was then fed into an XGBoost model (supervised). The XGBoost model then compares predictions of the PCA and fastText models, and makes a final prediction. I believe that the idea behind this "frankenstein model" is to use the perspectives of various styles of models to gain an accurate consensus on the data -- somewhat similar to the concept behind random forests.
 
 Because our model uses three distinct modeling techniques, I will refer to each of these modeling techniques as "sub-models."
 
-# The fastText Sub-Model
+In our repository, you will also find that we train and test a fastText classification model (supervised). This model is simply another attempt to create a classification model, and can be thought of as a baseline comparison to the frankenstien model.
+
+# The fastText Classification Model
 ## Overview
 In this section, we will document how we built our model for classifying tweets as "complaints" and "non-complaints." The code is almost entirely derived from the Code/cnn-classifier/R/fasttext_supervised_classifier.R script. 
 
@@ -278,6 +280,7 @@ confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_labe
 ## Useful Resources for XGBoost:
 When I was first learning about XGBoost, I found these youtube videos to be helpful in explaining the very basic concepts behind boosted trees. Hopefully, they can help you too if you're struggling to follow along. 
 
+XGBoost Documentation: https://xgboost.readthedocs.io/en/latest/R-package/xgboostPresentation.html
 Decision Trees: https://www.youtube.com/watch?v=7VeUPuFGJHk
 Random Forests: https://www.youtube.com/watch?v=J4Wdy0Wc_xQ
 More Random Forests: https://www.youtube.com/watch?v=nyxTdL_4Q-Q
