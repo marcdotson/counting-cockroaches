@@ -130,6 +130,7 @@ VectorizeTweet.prcomp <- function(tweet, model, component, ...) {
 
 # Logregobj Function ------------------------------------------------------
 # Dallin: Logistic Regression on Object (I think?)
+# This is the objective function used by the xgboost model (i.e. instead of a linear regression)
 
 logregobj <- function(preds, dtrain) {
   labels <- getinfo(dtrain, "label")
