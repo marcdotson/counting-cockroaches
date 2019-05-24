@@ -169,7 +169,7 @@ We are using this scree plot to analyze how many principle components can summar
 
 When using our PCA model to make predictions, we want a model that is as simple as possible while describing the data well. In terms of PCA, this generally means that you want to use only a few principal components to describe the majority of variance in the data. The scree plot shown below helps do this by informing us how many principal components we should use to effectivly describe our training data.
 
-The scree plot shows variances (in other words, variance undescribed by the model) on the y-axis, and principal components on the x-axis. For example, with only one principal component, a large amount of variance remains in the data. With two principal components, however, we see that the amount of undescribed variance drops considerably. The rule of thumb with the scree plot is to identify the "elbow" (where the slope of the line starts to flatten out), and choose a number of principal components based on number of principal components at that point. Using this plot, for example, we will use the first four principal components of the model. Using four principal components will help us achieve a model that is both simple, and accurate. Using more than four principal components will result in significantly diminished returns -- it will slow down our model without providing a significant improvement to our model's predictive ability. 
+The scree plot shows variances undescribed by the model on the y-axis, and principal components on the x-axis. For example, with only one principal component, a large amount of variance remains in the data. With two principal components, however, we see that the amount of undescribed variance drops considerably. The rule of thumb with the scree plot is to identify the "elbow" (where the slope of the line starts to flatten out), and choose a number of principal components based on number of principal components at that point. Using this plot, for example, we will use the first four principal components of the model. Using four principal components will help us achieve a model that is both simple, and accurate. Using more than four principal components will result in significantly diminished returns -- it will slow down our model without providing a significant improvement to our model's predictive ability. 
 ```{r}
 # make a scree plot of the components
 screeplot(train.pr, type = "line", npcs = 20)
@@ -327,5 +327,6 @@ confusionMatrix(factor(test_data$complaint_label), factor(test_data$predict_labe
 # save(bst, file = here::here("Output", "xgb.modelPC4.dat"))
 # xgb.save(bst, here::here("Output", "xgb.modelPC4-xgb_version.dat"))
 # save(test_data, file = here::here("Output", "test_data.dat"))
+save(train, file = ../../Output/train.Rdata) # Save the training file so it can be referenced in the paper
 ```
 
