@@ -4,7 +4,7 @@ output: github_document
 ---
 
 # Overview
-In this document, I will try to make a classification model similar to the one in 07_build_classifier.Rmd. The difference here will be that I will attempt to build a classification model meant to predict based on a set of many complaint categories.
+In this document, I will try to make a classification model similar to the one in 07_build_classifier.Rmd. The difference here will be that the classification model will predict based on a set of several complaint categories.
 
 # Libraries and Scripts
 ```{r echo = FALSE}
@@ -25,7 +25,7 @@ source("06_define_prediction_functions.R")
 ```
 
 ## Load the Training Dataset
-This dataset was created in file 07_build_classifier.Rmd. This dataset contains tweets that have been processed by unsupervised models (a fastText word embeddings model, and a PCR model trained on the fastText word embeddings). These unsupervised models were trained on millions of tweets instead of a few thousand, so we expect them to perform well on phrases and words that were not included in the relatively small labeled training dataset of a few thousand tweets.
+This dataset was created in file 07_build_classifier.Rmd. This dataset contains tweets that have been processed by unsupervised models (a fastText word embeddings model, and a PCR model trained on the fastText word embeddings). These unsupervised models were trained on millions of tweets instead of a few thousand, so we expect them to perform well on phrases and words that were not included in the relatively small labeled training dataset of about five thousand tweets.
 ```{r}
 load(here::here("Output", "train_data.dat"))
 ```
@@ -137,7 +137,7 @@ test_data %>%
   filter(complaint_category != 1) %>% 
   summarise(mean(correct))
 ```
-It appears that when predicting non-complaints, the model is only accurate about 25% of the time. This is very poor, but better than rolling the dice.
+It appears that when predicting non-complaints, the model is only accurate about 25% of the time. This is very poor, but better than rolling the dice. Regardless, I wouldn't put a lot of trust in its predictions.
 
 ```{r error = TRUE}
 confusionMatrix(factor(test_data$complaint_category), factor(test_data$prediction))
