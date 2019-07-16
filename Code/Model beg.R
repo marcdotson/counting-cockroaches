@@ -49,3 +49,4 @@ plot(fit)
 
 
 
+#I dont have the commits we made from your computer yet, but I'll work on that
