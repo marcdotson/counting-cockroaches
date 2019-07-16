@@ -51,4 +51,5 @@ plot(fit)
 
 
 #Adam back
+#let's make the magic happen
 
