@@ -52,4 +52,5 @@ plot(fit)
 
 #Adam back
 #let's make the magic happen
+#Sorry Marc but github is the worst 
 
