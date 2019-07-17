@@ -1,29 +1,12 @@
-#okay here we go try to make a model 
-#first I need to figure out how to simulate data 
+#simulating data for the model 
 
 library(rethinking)
-fake.data <- rnorm (1e5 )
-simplehist( rnorm , xlab = "fake news")
-fake.data <- rnorm(1e4, 4, 2)
-
-set.seed(2)
-fake.data <- rnorm(20, 4 , 2)
-
-fake.data
 
 #simulated data for multiple regression 
-set.seed(16)
-y <- rnorm( n = 100, mean = 0 , sd = 1 )
-x1 <- runif( n =100 , min = 1 , max = 2 )
-head(x1)
-x2 <- runif(n = 100, min = 200 , max =300 )
-head(x2)
-
-lm( y ~ x1 + x2)
 
 mydata <- sample(1:7, size=100, replace=TRUE )
-regress <- lm( mydata ~ x1 + x2)
-plot(regress)
+#regress <- lm( mydata ~ x1 + x2)
+#plot(regress)
 
 #creating variables 
 #length of tweet 
@@ -37,16 +20,29 @@ past <- sample(1:2 , size = 100 , replace = TRUE )
 re_tweet <- runif(100, min=0, max=5)
 
 #How many followers they have, I looked it up and the average twitter user has about 700 followers
-followers <- rnorm(n = 100 , mean = 700 , sd = 20 )
+followers <- rnorm(n = 100 , mean = 700 , sd = 200 )
 
 # I think we could use rnorm for followers becasue we know the man 
 #but for re_tweet it might be better to use a normal distribution because we don't know anything about how it is distributed 
 # I've also aribitraily made our sample size 100 but we can change that if we think something else would be more appropriate 
 
+#combine into data frame 
+d <- data.frame(length, past, re_tweet, followers)
+d
 
-fit <- lm( mydata ~ length + past + re_tweet + followers)
-summary(fit)
-plot(fit)
+twitter <- quap(
+  alist( 
+    mydata ~ dnorm(mu, sigma) , 
+    mu <- bl*length + bp*past + br*re_tweet + bf*followers , 
+    bl ~ dnorm(0, .25), 
+    bp ~ dnorm(0, .25), 
+    br ~ dnorm(0, .25), 
+    bf ~ dnorm(0, .25), 
+    sigma ~ dexp(1) 
+    ) , data=d) 
+precis(twitter)
+plot(twitter)
+
 
 #inserting chapter 5 p146 notation and quap formula
 
