@@ -22,8 +22,8 @@ re_tweet <- runif(100, min=0, max=5)
 #How many followers they have, I looked it up and the average twitter user has about 700 followers
 followers <- rnorm(n = 100 , mean = 700 , sd = 200 )
 
-# I think we could use rnorm for followers becasue we know the man 
-#but for re_tweet it might be better to use a normal distribution because we don't know anything about how it is distributed 
+# I think we could use rnorm for followers becasue we know the mean 
+#but for re_tweet it might be better to use a uniform distribution because we don't know anything about how it is distributed 
 # I've also aribitraily made our sample size 100 but we can change that if we think something else would be more appropriate 
 
 #combine into data frame 
