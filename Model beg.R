@@ -78,3 +78,4 @@ m5.7 <- quap(
 precis(m5.7)
 
 #I worked Adam! 
+# And by I worked I meant it worked
