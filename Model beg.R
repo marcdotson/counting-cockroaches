@@ -30,19 +30,21 @@ plot(regress)
 # I set between 10 and 280 because 280 is the max on twitter and 10 seemed like a small enough number 
 length <- sample(10:280, size = 100 , replace = TRUE )
 
-#number of tweets about this issue 
-count <- sample(0:100, size = 100 , replace = TRUE )
-
 #Have they tweeted about this in the past 
 past <- sample(1:2 , size = 100 , replace = TRUE )
 
 #How many times has this re-tweeted 
-re_tweet <- rnorm(100, mean = 4 , sd = 2 )
+re_tweet <- runif(100, min=0, max=5)
 
-#How many followers they have
-followers <- rnorm(n = 100 , mean = 200 , sd = 20 )
+#How many followers they have, I looked it up and the average twitter user has about 700 followers
+followers <- rnorm(n = 100 , mean = 700 , sd = 20 )
 
-fit <- lm( mydata ~ length + count + past + re_tweet + followers)
+# I think we could use rnorm for followers becasue we know the man 
+#but for re_tweet it might be better to use a normal distribution because we don't know anything about how it is distributed 
+# I've also aribitraily made our sample size 100 but we can change that if we think something else would be more appropriate 
+
+
+fit <- lm( mydata ~ length + past + re_tweet + followers)
 summary(fit)
 plot(fit)
 
