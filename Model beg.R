@@ -46,17 +46,6 @@ fit <- lm( mydata ~ length + count + past + re_tweet + followers)
 summary(fit)
 plot(fit)
 
-#Hey Adam can you see these changes 
-#Here we go again
-
-
-#Adam back
-#let's make the magic happen
-#Sorry Marc but github is the worst 
-
-
-#Got it!
-
 #inserting chapter 5 p146 notation and quap formula
 
 #Ki ∼ Normal(µi, σ)
@@ -77,5 +66,4 @@ m5.7 <- quap(
   ) , data=dcc )
 precis(m5.7)
 
-#I worked Adam! 
-# And by I worked I meant it worked
+
