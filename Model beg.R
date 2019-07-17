@@ -55,6 +55,9 @@ followers <- rnorm(n = 100 , mean = 700 , sd = 200 )
 # I think we could use rnorm for followers becasue we know the mean (I google it) 
 #but for re_tweet it might be better to use a uniform distribution because we don't know anything about how it is distributed 
 # I've also aribitraily made our sample size 100 but we can change that if we think something else would be more appropriate 
+Adam
+# Makes sense to me. re_tweet could very well be exponential or normal, but I couldn't give a great reason for either
+#I also thought about adding number of negative tweets, or is that the vairable 'past'?
 
 #combine into data frame 
 d <- data.frame(length, past, re_tweet, followers)
