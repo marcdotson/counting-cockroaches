@@ -76,3 +76,5 @@ m5.7 <- quap(
     sigma ~ dexp( 1 )
   ) , data=dcc )
 precis(m5.7)
+
+#I worked Adam! 
