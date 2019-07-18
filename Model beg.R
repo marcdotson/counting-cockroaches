@@ -14,11 +14,13 @@ mydata <- sample(1:7, size=100, replace=TRUE )
 length <- sample(10:280, size = 100 , replace = TRUE )
 
 #Have they tweeted about this in the past 
-past <- sample(1:2 , size = 100 , replace = TRUE )
+past <- sample(0:1 , size = 100 , replace = TRUE )
 
 #How many times has this re-tweeted 
 re_tweet <- runif(100, min=0, max=5)
 
+# follower count and re-tweet count may be too correlated to run in the same model 
+ 
 #How many followers they have, I looked it up and the average twitter user has about 700 followers
 followers <- rnorm(n = 100 , mean = 700 , sd = 200 )
 
@@ -43,6 +45,17 @@ twitter <- quap(
 precis(twitter)
 plot(twitter)
 
+plot(mydata)
+
+twitter <- quap(
+  alist( 
+    mydata ~ dnorm(mu, sigma) , 
+    mu <- length + past + re_tweet + followers , 
+    sigma ~ dexp(1) 
+  ) , data=d) 
+precis(twitter)
+plot(twitter)
+
 
 #inserting chapter 5 p146 notation and quap formula
 
@@ -64,4 +77,7 @@ m5.7 <- quap(
   ) , data=dcc )
 precis(m5.7)
 
+# Work on scaling to 1 - 7 
+# Making everything have the same impact 
+# What the heck this graph is and make it look regression and how to use it for prediction 
 
