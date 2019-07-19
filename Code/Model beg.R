@@ -1,3 +1,9 @@
+#I think we should delete this model page if 
+#everything has been copied to model beg in the main file section(not in code folder)
+
+
+
+
 #okay here we go try to make a model 
 #first I need to figure out how to simulate data 
 
