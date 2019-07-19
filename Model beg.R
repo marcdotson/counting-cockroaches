@@ -1,27 +1,27 @@
+# Simulating Data ---------------------------------------------------------
 #simulating data for the model 
 
-#All this is just getting all the right packages installed
-install.packages("usethis")
-
-remove.packages("rstan")
-if (file.exists(".RData")) file.remove(".RData")
-
-install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
-install.packages("processx")
-
-install.packages(c("coda","mvtnorm","devtools"))
-library(devtools)
-devtools::install_github("rmcelreath/rethinking",ref="Experimental")
-1
+# #All this is just getting all the right packages installed
+# install.packages("usethis")
+# 
+# remove.packages("rstan")
+# if (file.exists(".RData")) file.remove(".RData")
+# 
+# install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies = TRUE)
+# install.packages("processx")
+# 
+# install.packages(c("coda","mvtnorm","devtools"))
+# library(devtools)
+# devtools::install_github("rmcelreath/rethinking",ref="Experimental")
 
 library("rstan")
 
-install.packages(c("mvtnorm","loo","coda"), repos="https://cloud.r-project.org/",dependencies=TRUE)
-options(repos=c(getOption('repos'), rethinking='http://xcelab.net/R'))
-install.packages('rethinking',type='source')
+# install.packages(c("mvtnorm","loo","coda"), repos="https://cloud.r-project.org/",dependencies=TRUE)
+# options(repos=c(getOption('repos'), rethinking='http://xcelab.net/R'))
+# install.packages('rethinking',type='source')
 
 
-install.packages("rethinking")
+# install.packages("rethinking")
 
 
 library(rethinking)
@@ -30,16 +30,16 @@ library(usethis)
 
 #that should do it
 
-library(rethinking)
+# library(rethinking)
 
-#simulated data for multiple regression 
+# Simulated data for multiple regression.
 
-mydata <- sample(1:7, size=1000, replace=TRUE )
+# mydata <- sample(1:7, size=1000, replace=TRUE )
 #regress <- lm( mydata ~ x1 + x2)
 #plot(regress)
 
-#creating variables 
-#length of tweet 
+#creating variables
+#length of tweet
 # I set between 10 and 280 because 280 is the max on twitter and 10 seemed like a small enough number 
 length_of_tweet <- sample(10:280, size = 1000 , replace = TRUE )
 
@@ -59,16 +59,28 @@ followers <- rnorm(n = 1000 , mean = 700 , sd = 200 )
 # I think we could use rnorm for followers becasue we know the mean (I google it) 
 #but for re_tweet it might be better to use a uniform distribution because we don't know anything about how it is distributed 
 # I've also aribitraily made our sample size 100 but we can change that if we think something else would be more appropriate 
-Adam
+
 # Makes sense to me. re_tweet could very well be exponential or normal, but I couldn't give a great reason for either
 #I also thought about adding number of negative tweets, or is that the vairable 'past'? M- The variable past was suppose to be if they have tweeted in the past of not
 
 #is there another way to plot this that makes sense?
 
-#combine into data frame 
-d <- data.frame(length_of_tweet, past, re_tweet, followers)
-d
+# Specify parameter values.
+beta0 <- 1
+beta1 <- 3
+beta2 <- 2
+beta3 <- 4
+beta4 <- 5
+error <- rnorm(length(past), 0, 1)
 
+# Generate y.
+mydata <- beta0 + beta1 * length + beta2 * past + beta3 * re_tweet + beta4 * followers + error
+
+# Combine into data frame.
+d <- data.frame(mydata, length, past, re_tweet, followers)
+
+# Estimation --------------------------------------------------------------
+# Run quap.
 twitter <- quap(
   alist( 
     mydata ~ dnorm(mu, sigma) , 
@@ -78,7 +90,11 @@ twitter <- quap(
     br ~ dnorm(0, .25), 
     bf ~ dnorm(0, .25), 
     sigma ~ dexp(1) 
-    ) , data=d) 
+  ), 
+  data = d
+)
+
+# Evaluating model fit.
 precis(twitter)
 plot(twitter)
 
