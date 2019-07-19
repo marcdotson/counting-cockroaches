@@ -77,6 +77,8 @@ twitter <- quap(
 precis(twitter)
 plot(twitter)
 
+lm(twitter)
+
 #inserting chapter 5 p146 notation and quap formula
 
 #Ki ∼ Normal(µi, σ)
