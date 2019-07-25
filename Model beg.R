@@ -27,7 +27,7 @@ re_tweet <- runif(1000, min=0, max=5)
 # follower count and re-tweet count may be too correlated to run in the same model 
  
 #How many followers they have, I looked it up and the average twitter user has about 700 followers
-followers <- rnorm(n = 1000 , mean = 700 , sd = 200 )
+followers <- sample(0:1000, size=1000, replace=TRUE)
 
 # I think we could use rnorm for followers becasue we know the mean (I google it) 
 #but for re_tweet it might be better to use a uniform distribution because we don't know anything about how it is distributed 
