@@ -92,8 +92,13 @@ impact <- lm(mydata_scaled~followers_scaled, data=d_scaled)
 
 plot(impact)
 
+#Adam 
+
+#McKenna
 
 
+WAIC(twitter_scaled)
 
+compare(twitter, twitter_scaled)
 
 
