@@ -1,7 +1,6 @@
 # Stan/Rethinking Setup ---------------------------------------------------
-# 1. Install Stan, a compiler, and rstan: github.com/stan-dev/rstan/wiki/RStan-Getting-Started.
-# 2. Install "experimental" version of the rethinking packages:
-#    devtools::install_github("rmcelreath/rethinking", ref = "Experimental")
+# 1. Install Stan, a compiler, and rstan: github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+# 2. Install rethinking package: https://github.com/rmcelreath/rethinking/tree/Experimental
 
 # Simulating Data ---------------------------------------------------------
 # Load packages.
