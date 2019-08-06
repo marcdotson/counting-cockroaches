@@ -1,3 +1,5 @@
+# Model Building ---------------------------------------------------------
+
 # Load libraries.
 library(tidyverse)
 library(rstan)
@@ -47,7 +49,7 @@ tibble(probs) %>%
   ggplot(aes(x = probs)) +
   geom_histogram()
 
-
+# Model Calibration ---------------------------------------------------------
 
 # Extract the data from the first simulated dataset.
 Y <- extract(sim_data)$Y[1,]
@@ -69,4 +71,21 @@ fit <- stan(
   seed = 42
 )
 
-fit
+#Fit shoes no samples from Stan model
+
+# Check divergences.
+library(bayesplot)
+source(here::here("Code", "stan_ecology_model.R"))
+
+check_div(fit)
+
+as.matrix(fit) %>% 
+  mcmc_scatter(
+    pars = c("beta[1]", "beta[2]"), 
+    np = nuts_params(fit),
+    np_style = scatter_style_np(div_color = "green", div_alpha = 0.5)
+  )
+
+
+
+
