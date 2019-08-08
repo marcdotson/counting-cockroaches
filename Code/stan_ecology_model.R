@@ -1,22 +1,37 @@
-# Model Building ---------------------------------------------------------
+# Stan/Rethinking Setup ---------------------------------------------------
+# 1. Install Stan, a compiler, and rstan: github.com/stan-dev/rstan/wiki/RStan-Getting-Started
+# 2. Install rethinking package: https://github.com/rmcelreath/rethinking/tree/Experimental
 
-# Load libraries.
-library(tidyverse)
+# Simulating Data ---------------------------------------------------------
+# Load packages.
+library(rethinking)
 library(rstan)
 
-# Specify the data values for simulation in a list.
-sim_values <- list(
-  N = 100,           # Number of observations.
-  P = 3,             # Number of product alternatives.
-  L = 10             # Number of (estimable) attribute levels.
+# Simulate explanatory variables.
+sim_values = list(
+  N = 1000,
+  length <- sample(10:280, size = 1000 , replace = TRUE),
+  past <- sample(0:1 , size = 1000 , replace = TRUE),  
+  retweet <- runif(1000, min=0, max=5),    
+  followers <- sample(0:1000, size=1000, replace=TRUE)
 )
+
+R <- 50
+
+# Specify parameter values.
+b0 <- 1
+bl <- 5
+bp <- 10
+br <- -3
+bf <- 2
+error <- rnorm(1000, 0, 1) 
 
 # Specify the number of draws (i.e., simulated datasets).
 R <- 50
 
 # Simulate data.
 sim_data <- stan(
-  file = here::here("Code", "stan_ecology_model.stan"), 
+  file = here::here("stanfilehere.stan"), 
   data = sim_values,
   iter = R,
   warmup = 0, 
@@ -25,67 +40,3 @@ sim_data <- stan(
   seed = 42,
   algorithm = "Fixed_param"
 )
-
-
-
-# Extract simulated data and parameters.
-sim_x <- extract(sim_data)$X
-sim_b <- extract(sim_data)$beta
-
-# Compute the implied choice probabilities.
-probs <- NULL
-for (r in 1:R) {
-  probs_temp <- NULL
-  for (n in 1:sim_values$N) {
-    exp_xb <- exp(sim_x[r,n,,] %*% sim_b[r,])
-    max_prob <- max(exp_xb / sum(exp_xb))
-    probs <- c(probs, max_prob)
-  }
-  probs <- cbind(probs, probs_temp)
-}
-
-# Make sure there aren't dominating alternatives.
-tibble(probs) %>% 
-  ggplot(aes(x = probs)) +
-  geom_histogram()
-
-# Model Calibration ---------------------------------------------------------
-
-# Extract the data from the first simulated dataset.
-Y <- extract(sim_data)$Y[1,]
-X <- extract(sim_data)$X[1,,,]
-
-# Specify the data for calibration in a list.
-data <- list(
-  N = length(Y),           # Number of observations.
-  P = nrow(X[1,,]),        # Number of product alternatives.
-  L = ncol(X[1,,]),        # Number of (estimable) attribute levels.
-  Y = Y,                   # Vector of observed choices.
-  X = X                    # Experimental design for each observations.
-)
-
-# Calibrate the model.
-fit <- stan(
-  file = here::here("Code", "stan_ecology_model.stan"),
-  data = data,
-  seed = 42
-)
-
-#Fit shoes no samples from Stan model
-
-# Check divergences.
-library(bayesplot)
-source(here::here("Code", "stan_ecology_model.R"))
-
-check_div(fit)
-
-as.matrix(fit) %>% 
-  mcmc_scatter(
-    pars = c("beta[1]", "beta[2]"), 
-    np = nuts_params(fit),
-    np_style = scatter_style_np(div_color = "green", div_alpha = 0.5)
-  )
-
-
-
-
