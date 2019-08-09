@@ -28,4 +28,5 @@ transformed parameters  {
 model {
   // Standard normal prior for beta.
   beta ~ normal(0, 1);
+  mu ~ normal(3,1);
 }

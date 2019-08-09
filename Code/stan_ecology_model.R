@@ -31,7 +31,7 @@ R <- 50
 
 # Simulate data.
 sim_data <- stan(
-  file = here::here("stanfilehere.stan"), 
+  file = here::here("Code","stan_ecology_model.stan"), 
   data = sim_values,
   iter = R,
   warmup = 0, 
