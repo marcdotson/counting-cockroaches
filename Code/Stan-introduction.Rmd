@@ -1,9 +1,6 @@
 ---
 title: "Stan Introduction"
-output:
-  html_document: default
-  word_document: default
-  pdf_document: default
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -162,7 +159,7 @@ mymodeldata = list(
   Y = rnorm(N, 1.6, 0.2)
 )
 fit = stan(
-  file = here::here("my_stan_model.stan"),
+  file = here::here("Code", "my_stan_model.stan"),
   data = mymodeldata,
   seed = 42
 )
