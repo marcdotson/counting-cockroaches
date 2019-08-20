@@ -41,7 +41,7 @@ install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies =
 
     ## 
     ## The downloaded binary packages are in
-    ##  C:\Users\akh\AppData\Local\Temp\Rtmpwll70d\downloaded_packages
+    ##  C:\Users\akh\AppData\Local\Temp\RtmpIdSV26\downloaded_packages
 
 ``` r
 pkgbuild::has_build_tools(debug = TRUE) 
@@ -125,66 +125,54 @@ Stan files use double slash marks for comments // Lines within blocks
 should end with a semi colon ;. After the model block, leave one line
 underneath it.
 
------
-
-data {
-
-}
-
-parameters {
-
-}
-
-model {
-
-}
-
------
+    data {
+    
+    }
+    
+    parameters {
+    
+    }
+    
+    model {
+    
+    }
 
 These are the blocks I referred to earlier, and are the most used. There
 are others you’ll learn about later. Lets start with the first, data.
 Pretty straitforward, we need to tell the model what data we’re working
 with. Down below you’ll see how we format it.
 
------
-
-data {  
-int N;  
-real Y\[N\];  
-}
-
-parameters {
-
-}
-
-model {
-
-}
-
------
+    data {  
+      int N;  
+      real Y[N];  
+    }
+    
+    parameters {
+    
+    }
+    
+    model {
+    
+    }
 
 First we include our sample size. int because we are dealing with
 integers, a discrete count. Second, our observations, Y\[N\]. Real
 because our data are continuous. N is in brackets to tell stan that we
 have an array of data points for N individuals (100 in this case).
 
------
-
-data {  
-int N;  
-real Y\[N\];  
-}
-
-parameters {  
-real mu;  
-real\<lower=0\> sigma;  
-}
-
-model {
-
-}
-
------
+    data {  
+      int N;  
+      real Y[N];  
+    }
+    
+    parameters {  
+      real mu;  
+      real<lower=0> sigma;  
+    }
+    
+    model {
+    
+    }
 
 Our model section includes the parameters we are trying to estimate from
 our data. In our simple model here, we only are worried about mu and
@@ -192,26 +180,24 @@ sigma. Both are continuous, so type real, but we want to make sure the
 model knows that sigma cannot be negative. Thus we add in the
 \<lower=0\> modifier. That’s it for parameters.
 
------
-
+``` 
 data {  
-int N;  
-real Y\[N\];  
+  int N;   
+  real Y[N];  
 }
 
 parameters {  
-real mu;  
-real\<lower=0\> sigma;  
-}
+  real mu;  
+  real<lower=0> sigma;  
+}  
 
 model {  
-for(i in 1:N)  
-Y\[i\] \~ normal(mu, sigma);  
-mu \~ normal(1.7, 0.3)  
-sigma \~ cauchy(0, 1);  
-}
-
------
+  for(i in 1:N)  
+   Y[i] ~ normal(mu, sigma);  
+  mu ~ normal(1.7, 0.3)  
+  sigma ~ cauchy(0, 1);  
+}  
+```
 
 The model block gets a little more complicated, as will parameters and
 data in more complicated models that we will see later. For right now,
@@ -261,8 +247,8 @@ fit = stan(
     ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.193 seconds (Warm-up)
-    ## Chain 1:                0.221 seconds (Sampling)
+    ## Chain 1:  Elapsed Time: 0.206 seconds (Warm-up)
+    ## Chain 1:                0.208 seconds (Sampling)
     ## Chain 1:                0.414 seconds (Total)
     ## Chain 1: 
     ## 
@@ -286,9 +272,9 @@ fit = stan(
     ## Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.204 seconds (Warm-up)
-    ## Chain 2:                0.178 seconds (Sampling)
-    ## Chain 2:                0.382 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.182 seconds (Warm-up)
+    ## Chain 2:                0.161 seconds (Sampling)
+    ## Chain 2:                0.343 seconds (Total)
     ## Chain 2: 
     ## 
     ## SAMPLING FOR MODEL 'my_stan_model' NOW (CHAIN 3).
@@ -311,9 +297,9 @@ fit = stan(
     ## Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.188 seconds (Warm-up)
-    ## Chain 3:                0.227 seconds (Sampling)
-    ## Chain 3:                0.415 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.214 seconds (Warm-up)
+    ## Chain 3:                0.423 seconds (Sampling)
+    ## Chain 3:                0.637 seconds (Total)
     ## Chain 3: 
     ## 
     ## SAMPLING FOR MODEL 'my_stan_model' NOW (CHAIN 4).
@@ -336,9 +322,9 @@ fit = stan(
     ## Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.192 seconds (Warm-up)
-    ## Chain 4:                0.242 seconds (Sampling)
-    ## Chain 4:                0.434 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.201 seconds (Warm-up)
+    ## Chain 4:                0.161 seconds (Sampling)
+    ## Chain 4:                0.362 seconds (Total)
     ## Chain 4:
 
 The function stan can be manipulated in greater detail, but the only
@@ -364,11 +350,11 @@ print(fit)
     ## post-warmup draws per chain=1000, total post-warmup draws=4000.
     ## 
     ##         mean se_mean   sd   2.5%    25%    50%    75%  97.5% n_eff Rhat
-    ## mu      1.61    0.00 0.02   1.58   1.60   1.61   1.62   1.64  3479    1
-    ## sigma   0.16    0.00 0.01   0.14   0.16   0.16   0.17   0.19  3475    1
-    ## lp__  129.64    0.02 1.00 127.04 129.25 129.95 130.34 130.61  1908    1
+    ## mu      1.63    0.00 0.02   1.59   1.62   1.63   1.64   1.67  3265    1
+    ## sigma   0.20    0.00 0.01   0.17   0.19   0.20   0.21   0.23  3030    1
+    ## lp__  110.60    0.03 1.07 107.77 110.22 110.92 111.33 111.60  1286    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Fri Aug 16 14:18:31 2019.
+    ## Samples were drawn using NUTS(diag_e) at Tue Aug 20 13:19:43 2019.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).

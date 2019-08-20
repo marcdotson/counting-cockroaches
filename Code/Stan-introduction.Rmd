@@ -85,7 +85,7 @@ These are the blocks I referred to earlier, and are the most used. There are oth
 Lets start with the first, data. Pretty straitforward, we need to tell the model what data we're working with. Down below you'll see how we format it.
 
 
-***
+```
 data {  
   int N;  
   real Y[N];  
@@ -99,12 +99,12 @@ model {
 
 }
 
-***
+```
 
 First we include our sample size. int because we are dealing with integers, a discrete count. Second, our observations, Y[N]. Real because our data are continuous. N is in brackets to tell stan that we have an array of data points for N individuals (100 in this case).
 
 
-***
+```
 data {  
   int N;  
   real Y[N];  
@@ -119,12 +119,12 @@ model {
 
 }
 
-***
+```
 
 Our model section includes the parameters we are trying to estimate from our data. In our simple model here, we only are worried about mu and sigma. Both are continuous, so type real, but we want to make sure the model knows that sigma cannot be negative. Thus we add in the <lower=0> modifier. That's it for parameters.
 
 
-***
+```
 data {  
   int N;   
   real Y[N];  
@@ -142,7 +142,7 @@ model {
   sigma ~ cauchy(0, 1);  
 }  
 
-***
+```
 
 The model block gets a little more complicated, as will parameters and data in more complicated models that we will see later. For right now, this will do. We start by defining our likelyhood here, in which we make a for loop that will run all points of our data Y, assuming a normal distribution. Then we define our priors for both our parameters, mu and sigma. In this code, we assume a prior very close to our data, but tweek the numbers here to see how priors interact with the likelyhood.
 
