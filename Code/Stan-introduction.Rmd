@@ -66,7 +66,7 @@ Stan files use double slash marks for comments //
 Lines within blocks should end with a semi colon ;.
 After the model block, leave one line underneath it. 
 
-***
+```
 data {
 
 }
@@ -79,7 +79,7 @@ model {
 
 }
 
-***
+```
 
 These are the blocks I referred to earlier, and are the most used. There are others you'll learn about later.
 Lets start with the first, data. Pretty straitforward, we need to tell the model what data we're working with. Down below you'll see how we format it.
