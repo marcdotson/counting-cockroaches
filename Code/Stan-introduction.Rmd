@@ -136,8 +136,10 @@ parameters {
 }  
 
 model {  
+//This for loop is our likelyhood
   for(i in 1:N)  
    Y[i] ~ normal(mu, sigma);  
+//These are our priors
   mu ~ normal(1.7, 0.3)  
   sigma ~ cauchy(0, 1);  
 }  
@@ -161,7 +163,8 @@ mymodeldata = list(
 fit = stan(
   file = here::here("Code", "my_stan_model.stan"),
   data = mymodeldata,
-  seed = 42
+  seed = 42,
+  chains = 4
 )
 ```
 
@@ -169,7 +172,16 @@ The function stan can be manipulated in greater detail, but the only details we 
 
 The here::here line will be useful as we navigate directories in Github. For now, assuming that your Rscript and Stan file are in the same directory or project on your computer, you should only need to correctly spell the name of your Stan file.
 
-Now the object fit contains the results of running our data through our model. Let's check them out.
+The chains code is helpful for making your code run more efficiently and checking for accuracy. We will go into more detail later, but for now you should run 4 chains, assuming your computer has 4 cores. If your not sure how many cores you have, you can usually find that information in your computer settings, or you can run this code.
+
+```
+install.packages("parellel")
+library(parallel)
+detectCores()
+```
+R will detect the number of cores on your PC. 
+
+Now the object 'fit' contains the results of running our data through our model. Let's check them out.
 ```{r}
 print(fit)
 ```
