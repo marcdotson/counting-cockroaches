@@ -41,7 +41,7 @@ install.packages("rstan", repos = "https://cloud.r-project.org/", dependencies =
 
     ## 
     ## The downloaded binary packages are in
-    ##  C:\Users\akh\AppData\Local\Temp\RtmpIdSV26\downloaded_packages
+    ##  C:\Users\akh\AppData\Local\Temp\Rtmpcl12ev\downloaded_packages
 
 ``` r
 pkgbuild::has_build_tools(debug = TRUE) 
@@ -192,8 +192,10 @@ parameters {
 }  
 
 model {  
+//This for loop is our likelyhood
   for(i in 1:N)  
    Y[i] ~ normal(mu, sigma);  
+//These are our priors
   mu ~ normal(1.7, 0.3)  
   sigma ~ cauchy(0, 1);  
 }  
@@ -222,7 +224,8 @@ mymodeldata = list(
 fit = stan(
   file = here::here("Code", "my_stan_model.stan"),
   data = mymodeldata,
-  seed = 42
+  seed = 42,
+  chains = 4
 )
 ```
 
@@ -247,9 +250,9 @@ fit = stan(
     ## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 1: 
-    ## Chain 1:  Elapsed Time: 0.206 seconds (Warm-up)
-    ## Chain 1:                0.208 seconds (Sampling)
-    ## Chain 1:                0.414 seconds (Total)
+    ## Chain 1:  Elapsed Time: 0.195 seconds (Warm-up)
+    ## Chain 1:                0.132 seconds (Sampling)
+    ## Chain 1:                0.327 seconds (Total)
     ## Chain 1: 
     ## 
     ## SAMPLING FOR MODEL 'my_stan_model' NOW (CHAIN 2).
@@ -272,9 +275,9 @@ fit = stan(
     ## Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 2: 
-    ## Chain 2:  Elapsed Time: 0.182 seconds (Warm-up)
-    ## Chain 2:                0.161 seconds (Sampling)
-    ## Chain 2:                0.343 seconds (Total)
+    ## Chain 2:  Elapsed Time: 0.184 seconds (Warm-up)
+    ## Chain 2:                0.145 seconds (Sampling)
+    ## Chain 2:                0.329 seconds (Total)
     ## Chain 2: 
     ## 
     ## SAMPLING FOR MODEL 'my_stan_model' NOW (CHAIN 3).
@@ -297,9 +300,9 @@ fit = stan(
     ## Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 3: 
-    ## Chain 3:  Elapsed Time: 0.214 seconds (Warm-up)
-    ## Chain 3:                0.423 seconds (Sampling)
-    ## Chain 3:                0.637 seconds (Total)
+    ## Chain 3:  Elapsed Time: 0.184 seconds (Warm-up)
+    ## Chain 3:                0.211 seconds (Sampling)
+    ## Chain 3:                0.395 seconds (Total)
     ## Chain 3: 
     ## 
     ## SAMPLING FOR MODEL 'my_stan_model' NOW (CHAIN 4).
@@ -322,9 +325,9 @@ fit = stan(
     ## Chain 4: Iteration: 1800 / 2000 [ 90%]  (Sampling)
     ## Chain 4: Iteration: 2000 / 2000 [100%]  (Sampling)
     ## Chain 4: 
-    ## Chain 4:  Elapsed Time: 0.201 seconds (Warm-up)
-    ## Chain 4:                0.161 seconds (Sampling)
-    ## Chain 4:                0.362 seconds (Total)
+    ## Chain 4:  Elapsed Time: 0.205 seconds (Warm-up)
+    ## Chain 4:                0.151 seconds (Sampling)
+    ## Chain 4:                0.356 seconds (Total)
     ## Chain 4:
 
 The function stan can be manipulated in greater detail, but the only
@@ -338,8 +341,20 @@ For now, assuming that your Rscript and Stan file are in the same
 directory or project on your computer, you should only need to correctly
 spell the name of your Stan file.
 
-Now the object fit contains the results of running our data through our
-model. Let’s check them out.
+The chains code is helpful for making your code run more efficiently and
+checking for accuracy. We will go into more detail later, but for now
+you should run 4 chains, assuming your computer has 4 cores. If your not
+sure how many cores you have, you can usually find that information in
+your computer settings, or you can run this code.
+
+    install.packages("parellel")
+    library(parallel)
+    detectCores()
+
+R will detect the number of cores on your PC.
+
+Now the object ‘fit’ contains the results of running our data through
+our model. Let’s check them out.
 
 ``` r
 print(fit)
@@ -349,12 +364,12 @@ print(fit)
     ## 4 chains, each with iter=2000; warmup=1000; thin=1; 
     ## post-warmup draws per chain=1000, total post-warmup draws=4000.
     ## 
-    ##         mean se_mean   sd   2.5%    25%    50%    75%  97.5% n_eff Rhat
-    ## mu      1.63    0.00 0.02   1.59   1.62   1.63   1.64   1.67  3265    1
-    ## sigma   0.20    0.00 0.01   0.17   0.19   0.20   0.21   0.23  3030    1
-    ## lp__  110.60    0.03 1.07 107.77 110.22 110.92 111.33 111.60  1286    1
+    ##         mean se_mean   sd   2.5%    25%    50%   75%  97.5% n_eff Rhat
+    ## mu      1.59    0.00 0.02   1.55   1.58   1.59   1.6   1.63  3907    1
+    ## sigma   0.19    0.00 0.01   0.17   0.18   0.19   0.2   0.22  2899    1
+    ## lp__  114.46    0.02 1.06 111.68 114.09 114.80 115.2 115.46  1810    1
     ## 
-    ## Samples were drawn using NUTS(diag_e) at Tue Aug 20 13:19:43 2019.
+    ## Samples were drawn using NUTS(diag_e) at Mon Aug 26 14:35:43 2019.
     ## For each parameter, n_eff is a crude measure of effective sample size,
     ## and Rhat is the potential scale reduction factor on split chains (at 
     ## convergence, Rhat=1).
