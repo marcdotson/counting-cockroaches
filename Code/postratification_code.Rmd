@@ -1,0 +1,28 @@
+---
+title: "Postratification Code"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Postratification code
+
+We are looking into an MRP model for Counting Cockroaches and we want to learn what postratification is and if we can do it in our model.
+
+The documents we study are currently together on a google doc
+
+```{r}
+library(tidyverse)
+
+
+
+vote_yes <- c(rep(0, 25*(1-0.76)), 
+              rep(1, 25*0.76),
+              rep(0, 50*(1-0.3)),
+              rep(1, 50*0.3))
+vote_yes
+
+```
+
