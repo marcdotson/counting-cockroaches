@@ -23,6 +23,46 @@ vote_yes <- c(rep(0, 25*(1-0.76)),
               rep(0, 50*(1-0.3)),
               rep(1, 50*0.3))
 vote_yes
+mean(vote_yes)
 
+
+
+
+```
+
+That is our population. We will now make a sample with subgroups.
+
+```{r}
+poll_data <- tibble(
+  group = c(rep("A", 25), rep("B", 10)),
+  yes = c(rep(1, 19), rep(0, 6), rep(1, 3), rep(0, 7))
+)
+poll_data %>%
+  group_by(group) %>%
+  summarise(count = n())
+```
+
+Here are our subgroups and how many our represented in our sample. It does not match the proportions found in our population.
+
+```{r}
+Census <- tibble(
+  group = c("A", "B"),
+  pop = c(25, 50)
+)
+Census
+mean(poll_data$yes)
+```
+
+Our mean for the sample varies from our population, so we stratify.
+
+```{r}
+group_support <- poll_data %>%
+  group_by(group) %>%
+  summarise(perc_support = mean(yes))
+group_support
+
+overall_support <- group_support %>%
+  summarise(total_support = sum(perc_support * Census$pop/sum(Census$pop)))
+overall_support
 ```
 
