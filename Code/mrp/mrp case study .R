@@ -67,3 +67,21 @@ d.total.ave
 apipop %>% as.tibble() %>%
   summarise(mean(api00))
 
+### MRP with rstanarm 
+
+library(rstanarm)
+library(bayesplot)
+theme_set(bayesplot::theme_default())
+library(dplyr)
+library(tidyr)
+
+
+
+
+
+
+
+
+
+
+
