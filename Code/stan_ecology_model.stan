@@ -6,7 +6,6 @@ data {
   real past[N];
   real retweet[N];
   real followers[N];
-  int<lower=0> p;    // Number of parameters
 }
   
 parameters {
