@@ -3,7 +3,6 @@ data {
   int<lower=0> N[2];            // number of observations where y =0 and y = 1 respectively
   vector[K] xbar;               // vector of column-means of rbind(X0, X1)
   int<lower=0,upper=1> dense_X; // flag for dense vs. sparse
-  
   row_vector[D] x[N];
 }
 parameters {

@@ -1,23 +1,75 @@
----
-title: "MPR case study 2"
-author: "McKenna Weech"
-date: "11/7/2019"
-output: github_document
----
-original: http://mc-stan.org/rstanarm/articles/mrp.html
+MPR case study 2
+================
+McKenna Weech
+11/7/2019
 
-```{r}
+original: <http://mc-stan.org/rstanarm/articles/mrp.html>
+
+``` r
 library(rstanarm)
+```
+
+    ## Loading required package: Rcpp
+
+    ## Registered S3 method overwritten by 'xts':
+    ##   method     from
+    ##   as.zoo.xts zoo
+
+    ## rstanarm (Version 2.19.2, packaged: 2019-10-01 20:20:33 UTC)
+
+    ## - Do not expect the default priors to remain the same in future rstanarm versions.
+
+    ## Thus, R scripts should specify priors explicitly, even if they are just the defaults.
+
+    ## - For execution on a local, multicore CPU with excess RAM we recommend calling
+
+    ## options(mc.cores = parallel::detectCores())
+
+    ## - bayesplot theme set to bayesplot::theme_default()
+
+    ##    * Does _not_ affect other ggplot2 plots
+
+    ##    * See ?bayesplot_theme_set for details on theme setting
+
+``` r
 library(ggplot2)
 library(bayesplot)
+```
+
+    ## This is bayesplot version 1.7.0
+
+    ## - Online documentation and vignettes at mc-stan.org/bayesplot
+
+    ## - bayesplot theme set to bayesplot::theme_default()
+
+    ##    * Does _not_ affect other ggplot2 plots
+
+    ##    * See ?bayesplot_theme_set for details on theme setting
+
+``` r
 theme_set(bayesplot::theme_default())
 library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(tidyr)
 ```
 
+Here is the code that they use to make their ’‘’simulate\_mrp\_data’’’
+function
 
-Here is the code that they use to make their '''simulate_mrp_data''' function
-```{r}
+``` r
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
