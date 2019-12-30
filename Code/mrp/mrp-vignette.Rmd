@@ -16,7 +16,7 @@ library(tidyr)
 ```
 
 
-Here is the code that they use to make their '''simulate_mrp_data''' function
+Here is the code that they use to make their funtion. 
 ```{r}
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
@@ -119,3 +119,43 @@ simulate_mrp_data <- function(n) {
   )
 }
 ```
+
+
+Running the function to get simulated data. 
+```{r}
+mrp_sim <- simulate_mrp_data(n=100)
+str(mrp_sim)
+
+sample <- mrp_sim[["sample"]]
+poststrat <- mrp_sim[["poststrat"]]
+true_popn <- mrp_sim[["true_popn"]]
+```
+```{r}
+fit <- stan_glmer(
+  cat_pref ~ factor(male) + factor(male) * factor(age) + 
+    (1 | state) + (1 | age) + (1 | eth) + (1 | income),
+  family = binomial(link = "logit"),
+  data = sample
+)
+```
+
+Now I am trying to put the data into a list that we can input into stan. 
+```{r}
+stan_data <- list( 
+  K = 5, 
+  
+  )
+
+
+
+
+# This is the RStanrm function that they use
+
+# fit <- stan_glmer(
+#   cat_pref ~ factor(male) + factor(male) * factor(age) + 
+#     (1 | state) + (1 | age) + (1 | eth) + (1 | income),
+#   family = binomial(link = "logit"),
+#   data = sample
+# )
+```
+

@@ -32,7 +32,7 @@ data {
   // where the non-zeros start in each row of X1
   int<lower=0, upper = rows(w_X1) + 1> u_X1[dense_X ? 0 : N[2] + 1]; 
   // declares prior_PD, has_intercept, link, prior_dist, prior_dist_for_intercept
-#include /data/data_glm.stan
+// include /data/data_glm.stan
 
   int<lower=0> K_smooth;
   matrix[N[1], K_smooth] S0;
@@ -99,7 +99,7 @@ transformed data {
 parameters {
   real<upper=(link == 4 ? 0.0 : positive_infinity())> gamma[has_intercept];
   // declares z_beta, global, local, z_b, z_T, rho, zeta, tau
-// include /parameters/parameters_glm.stan
+  // include /parameters/parameters_glm.stan
 }
 transformed parameters {
   // defines beta, b, theta_L
