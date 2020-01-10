@@ -139,6 +139,11 @@ fit <- stan_glmer(
 )
 ```
 
+For information on the priors used.
+```{r}
+prior_summary.stanreg
+```
+
 Now I am trying to put the data into a list that we can input into stan. 
 ```{r}
 stan_data <- list( 
