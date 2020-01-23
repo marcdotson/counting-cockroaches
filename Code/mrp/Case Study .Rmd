@@ -5,17 +5,45 @@ date: "1/17/2020"
 output: github_document
 ---
 
-Load packages 
+
+Firms employ a variety of passive listening platforms (e.g., customer comment cards, help lines, social media) that elicit a variety of complaints. Since these complaints are self-selected, it isn’t obvious if complaints are widespread or genuinely indicative of systemic service failures. In other words, how can can a firm know when complaints can be ignored and when they need to addressed? This issue is related to a larger class of problems where the goal is to make inference about the size of a population from a non-random sample (e.g., the German tank problem). In this paper, we develop a model that uses a variety of observed customer complaints on Twitter to make inference about the severity of service failures.
+
+## Describe the model conceptually
+
+It has been said that if you observe a cockroach on your floor, there are likely thousands inside the walls of your home. Following this analogy, our hope is to count the cockroaches we can see and calculate how many are hiding in the walls.
+
+For the first portion of this case, we will be making a model around simulated data. Each observation will represent a single tweet, and we will be scoring them for satisfaction. We will use a multiple hierarchal linear model to predict satisfaction from the other known variables. Once we have the model predicting well on our simulated data, we will fit it to our real data, and from there use our real data satisfaction scores to measure service or product failure severity.
+
+Along with making a model, we will also be using poststratification to correct the weights in our simulated sample and real data to more correctly represent the population. This will be explained in greater detail as we postratify in this first iteration of the model, so we can explain and see the benefit of a full multiple regression with postratification model (MRP).
+
+To begin, we will start by generating our simulated data. It will run through an initial simple linear model and postratification.
+
+
+# Iteration 1: Simulation Data and Simple Model
+
+This initial block of code, we will just be loading in the needed packages and settings to make our sample and model code run.
+
 ```{r message = FALSE}
+library(tidyverse) #Load packages
+library(rstan)
 library(rstanarm)
 library(ggplot2)
 library(bayesplot)
 theme_set(bayesplot::theme_default())
 library(dplyr)
 library(tidyr)
+library(tidybayes)
+
+options(mc.cores = parallel::detectCores()) # Set Stan to use all availible cores
+rstan_options(auto_write = TRUE) # Don't recompile Stan code that hasn't changed
 ```
 
-First we will simulate data. 
+For this first iteration of modeling, we will be generating our own data. We will generate a population, and sample from it in order to build an MRP model. 
+
+We will be modeling our populations `satisfaction`. This will eventually translate into measuring service severity when we apply our model to our real data. We will be looking at common characteristics like `gender`, `ethnicity`, `income`, `age`, and `state`. 
+
+The following code will make a function `simulate_mrp_data` that will help us make our simulated data, and sample from it in such a way that we can use and see the value in postratification.
+
 ```{r}
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
@@ -117,16 +145,6 @@ simulate_mrp_data <- function(n) {
     true_popn = true_popn
   )
 }
-```
-
-Next we can view the data
-```{r}
-mrp_sim <- simulate_mrp_data(n=100)
-str(mrp_sim)
-
-sample <- mrp_sim[["sample"]]
-poststrat <- mrp_sim[["poststrat"]]
-true_popn <- mrp_sim[["true_popn"]]
 ```
 
 ### Begine Bayseian Work Flow (Modeling) 
