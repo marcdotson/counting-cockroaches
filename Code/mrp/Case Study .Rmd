@@ -151,13 +151,13 @@ t have a poststrat_prob yet so it freaks out
 
 For the postratification portion we take the estimate that we get from the model times poststrat$/N / sum(postsrat$N) 
 
-```{r eval = FALSE}
+```{r eval = FALSE2}
 poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
 model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
 round(model_popn_pref, 3)
 ```
 
-Becasue we are using simulated data we can see how our poststratified predictions compare to the true population 
+Because we are using simulated data we can see how our poststratified predictions compare to the true population 
 
 ```{r eval = FALSE}
 sample_popn_pref <- mean(sample$cat_pref)

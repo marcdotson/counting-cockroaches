@@ -130,10 +130,18 @@ sample <- mrp_sim[["sample"]]
 poststrat <- mrp_sim[["poststrat"]]
 true_popn <- mrp_sim[["true_popn"]]
 ```
+
+```{r}
+sample
+```
+
+
+
+
 ```{r}
 fit <- stan_glmer(
-  cat_pref ~ factor(male) + factor(male) * factor(age) + 
-    (1 | state) + (1 | age) + (1 | eth) + (1 | income),
+  cat_pref ~ factor(male) + factor(male) * factor(age) + # gender factor and a gender ~ age interaction factor
+    (1 | state) + (1 | age) + (1 | eth) + (1 | income), # random intercept with fixed means
   family = binomial(link = "logit"),
   data = sample
 )

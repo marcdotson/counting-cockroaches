@@ -10,7 +10,7 @@ functions {
 data {
   // dimensions
   int<lower=0> K;        // number of predictors
-  int<lower=0> N[2];     // number of observations where y = 0 and y = 1 respectively
+  int<lower=0> N[2];     // number of observations where y = 0 and y = 1 respectively  # Number of observations or number of variables??
   vector[K] xbar;        // vector of column-means of rbind(X0, X1)
   int<lower=0,upper=1> dense_X; // flag for dense vs. sparse
   matrix[N[1],K] X0[dense_X];   // centered (by xbar) predictor matrix | y = 0
@@ -122,33 +122,33 @@ transformed parameters {
     }
   }
 }
-model {
-  if (can_do_bernoullilogitglm) {
+model {        // y ~ bernoulli_logit_glm (x, alpha, beta)
+  if (can_do_bernoullilogitglm) {  // This is a bernoulli-logit generalised linear model (see stan guid 11.3)
     vector[K + K_smooth] coeff = K_smooth > 0 ? append_row(beta, beta_smooth) : beta;
-    target += bernoulli_logit_glm_lpmf(y | XS, has_intercept ? gamma[1] : 0.0, coeff);
+    target += bernoulli_logit_glm_lpmf(y | XS, has_intercept ? gamma[1] : 0.0, coeff); //(int[] y | matrix x, real alpha)
   } else if (prior_PD == 0) {
     // defines eta0, eta1
 // include /model/make_eta_bern.stan
     if (has_intercept == 1) {
-      if (link != 4) {
-        eta0 += gamma[1];
+      if (link != 4) { // isn't bernoulloi_logit the link function // a link function transforms catergorical variables into continious variables so that a regression can be performed. 
+        eta0 += gamma[1]; // I don't see where eta and gamma are coming into this 
         eta1 += gamma[1];
       }
       else {
-        real shift = fmax(max(eta0), max(eta1));
-        eta0 += gamma[1] - shift;
+        real shift = fmax(max(eta0), max(eta1)); // fmax takes the max of the two 
+        eta0 += gamma[1] - shift; // This is subtracting the max of the two 
         eta1 += gamma[1] - shift;
       }
     }
     // Log-likelihood
-    if (clogit) { 
+    if (clogit) { // conditional logistic regression 
       real dummy = ll_clogit_lp(eta0, eta1, successes, failures, observations);
     }
     else if (has_weights == 0) {
       real dummy = ll_bern_lp(eta0, eta1, link, N);
     }
     else {  // weighted log-likelihoods
-      target += dot_product(weights0, pw_bern(0, eta0, link));
+      target += dot_product(weights0, pw_bern(0, eta0, link)); // dot product give a scaler not a vecotr as an answer 
       target += dot_product(weights1, pw_bern(1, eta1, link));
     }
   }
