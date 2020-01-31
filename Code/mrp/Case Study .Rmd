@@ -147,6 +147,14 @@ simulate_mrp_data <- function(n) {
 }
 ```
 
+```{r}
+mrp_sim <- simulate_mrp_data(n=1200)
+sample <- mrp_sim[["sample"]]
+
+print(sample)
+```
+
+
 ```{r echo=FALSE}
 
 J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
