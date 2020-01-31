@@ -302,6 +302,141 @@ generated quantities {
 }
 ```
 
+``` r
+sim_values <- list(
+  N = 6300,                                       # Number of observations.
+  K = 2,                                         # Number of groups.
+  I = 65,                                         # Number of observation-level covariates.
+  
+  male = sample(2, 6300, replace = TRUE),            # Vector of group assignments.
+  eth = sample(3, 6300, replace = TRUE),       # Vector of brands covariates.
+  age = sample(7, 6300, replace = TRUE),        # Vector of price covariates.
+  income = sample(3, 6300, replace = TRUE),
+  state = sample(50, 6300, replace = TRUE),
+  
+  gamma_mean = 0.5,                              # Mean for the hyperprior on gamma.
+  gamma_var = 0.2,                               # Variance for the hyperprior on gamma.
+  tau_min = 0,                                   # Minimum for the hyperprior on tau.
+  tau_max = .1,                                   # Maximum for the hyperprior on tau.
+  sigma_min = 0,                                 # Minimum for the hyperprior on tau.
+  sigma_max = .1                                  # Maximum for the hyperprior on tau.
+)
+# Generate data.
+sim_data <- stan(
+  file = here::here("Code/mrp/generate_data.stan"),
+  data = sim_values,
+  iter = 10,
+  chains = 1,
+  seed = 42,
+  algorithm = "Fixed_param"
+)
+```
+
+    ## 
+    ## SAMPLING FOR MODEL 'generate_data' NOW (CHAIN 1).
+    ## Chain 1: Iteration: 1 / 10 [ 10%]  (Sampling)
+    ## Chain 1: Iteration: 2 / 10 [ 20%]  (Sampling)
+    ## Chain 1: Iteration: 3 / 10 [ 30%]  (Sampling)
+    ## Chain 1: Iteration: 4 / 10 [ 40%]  (Sampling)
+    ## Chain 1: Iteration: 5 / 10 [ 50%]  (Sampling)
+    ## Chain 1: Iteration: 6 / 10 [ 60%]  (Sampling)
+    ## Chain 1: Iteration: 7 / 10 [ 70%]  (Sampling)
+    ## Chain 1: Iteration: 8 / 10 [ 80%]  (Sampling)
+    ## Chain 1: Iteration: 9 / 10 [ 90%]  (Sampling)
+    ## Chain 1: Iteration: 10 / 10 [100%]  (Sampling)
+    ## Chain 1: 
+    ## Chain 1:  Elapsed Time: 0 seconds (Warm-up)
+    ## Chain 1:                0.017 seconds (Sampling)
+    ## Chain 1:                0.017 seconds (Total)
+    ## Chain 1:
+
+``` r
+# Extract the simulated data.
+prior_pc <- tibble(
+  cat_pref = as.vector(extract(sim_data)$cat_pref)
+)
+# Plot the prior predictive distribution.
+prior_pc %>% 
+  ggplot(aes(x = cat_pref)) +
+  geom_density()
+```
+
+![](Case-Study-_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+``` r
+# # Specify data.
+# data <- list(
+#   N = nrow(true_popn),                     # Number of observations.
+#   K = 2,                    # Number of groups.
+#   I = 65,                                # Number of observation-level covariates.
+#   
+#   cat_pref = true_popn$cat_pref,               # Vector of observations.
+#   male = as.numeric(as.factor(true_popn$male)),            # Vector of group assignments.
+#   eth = true_popn$eth,       # Vector of brands covariates.
+#   age = true_popn$age,        # Vector of price covariates.
+#   income = true_popn$income,
+#   state = true_popn$state,
+#   
+#   gamma_mean = 0.5,                                # Mean for the hyperprior on gamma.
+#   gamma_var = .2,                                 # Variance for the hyperprior on gamma.
+#   tau_min = 0,                                   # Minimum for the hyperprior on tau.
+#   tau_max = 1,                                   # Maximum for the hyperprior on tau.
+#   sigma_min = 0,                                 # Minimum for the hyperprior on tau.
+#   sigma_max = 1                                 # Maximum for the hyperprior on tau.
+# )
+# # Calibrate the model.
+# model03 <- stan(
+#   file = here::here("Code/mrp/hierarchical_model.stan"),
+#   data = data,
+#   control = list(adapt_delta = 0.99),
+#   seed = 42
+# )
+```
+
+``` r
+# Posterior predictive check.
+# post_pc03 <- tibble(
+#   # Extract the posterior predicted values.
+#   intent = as.vector(extract(model03)$cat_pref_pc)
+# )
+# # Plot the posterior predictive distribution.
+# ggplot(post_pc03, aes(x = intent)) +
+#   geom_histogram() +
+#   xlim(1, 10) 
+# ggplot(purchase_intent, aes(x = intent)) +
+#   geom_histogram() +
+#   xlim(1, 10) 
+```
+
+``` r
+# model03 %>%
+#   gather_draws(alpha[n, i]) %>%
+#   unite(.variable, .variable, n, i) %>%
+#   ggplot(aes(x = .value, y = .variable)) +
+#   geom_halfeyeh(.width = .95) +
+#   facet_wrap(
+#     ~ .variable,
+#     nrow = data$K,
+#     ncol = (data$I - 1),
+#     scales = "free"
+#   )
+```
+
+``` r
+# Plot the betas.
+# model03 %>%
+#   gather_draws(beta[i]) %>%
+#   unite(.variable, .variable, i) %>%
+#   ggplot(aes(x = .value, y = .variable)) +
+#   geom_halfeyeh(.width = .95) +
+#   facet_wrap(
+#     ~ .variable,
+#     nrow = data$K,
+#     ncol = 1,
+#     scales = "free"
+#   )
+```
+
 ### Postratification
 
 Note: for now I have set these chuncks to eval = false because we don t

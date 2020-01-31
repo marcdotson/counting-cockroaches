@@ -203,6 +203,22 @@ J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
       p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
   }
 
+  coef_male <- c(0,-0.3)
+  coef_eth <- c(0, 0.6, 0.9)
+  coef_age <- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
+  coef_income <- c(0,-0.2, 0.6)
+  coef_state <- c(0, round(rnorm(49, 0, 1), 1))
+  coef_age_male <- t(cbind(c(0, .1, .23, .3, .43, .5, .6),
+                           c(0, -.1, -.23, -.5, -.43, -.5, -.6)))
+  true_popn <- data.frame(poststrat[, 1:5], service_failure = rep(NA, prod(J)))
+  for (j in 1:prod(J)) {
+    true_popn$satisfaction[j] <- plogis(
+      coef_male[poststrat[j, 1] + 1] +
+        coef_eth[poststrat[j, 2]] + coef_age[poststrat[j, 3]] +
+        coef_income[poststrat[j, 4]] + coef_state[poststrat[j, 5]] +
+        coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
+      )
+  }
 ```
 
 Now that we have our simulated data, we now need our hierarchal stan model. 
@@ -329,6 +345,126 @@ generated quantities {
   }
 }
 
+```
+
+
+```{r}
+sim_values <- list(
+  N = 6300,                                       # Number of observations.
+  K = 2,                                         # Number of groups.
+  I = 65,                                         # Number of observation-level covariates.
+  
+  male = sample(2, 6300, replace = TRUE),            # Vector of group assignments.
+  eth = sample(3, 6300, replace = TRUE),       # Vector of brands covariates.
+  age = sample(7, 6300, replace = TRUE),        # Vector of price covariates.
+  income = sample(3, 6300, replace = TRUE),
+  state = sample(50, 6300, replace = TRUE),
+  
+  gamma_mean = 0.5,                              # Mean for the hyperprior on gamma.
+  gamma_var = 0.2,                               # Variance for the hyperprior on gamma.
+  tau_min = 0,                                   # Minimum for the hyperprior on tau.
+  tau_max = .1,                                   # Maximum for the hyperprior on tau.
+  sigma_min = 0,                                 # Minimum for the hyperprior on tau.
+  sigma_max = .1                                  # Maximum for the hyperprior on tau.
+)
+# Generate data.
+sim_data <- stan(
+  file = here::here("Code/mrp/generate_data.stan"),
+  data = sim_values,
+  iter = 10,
+  chains = 1,
+  seed = 42,
+  algorithm = "Fixed_param"
+)
+```
+
+```{r}
+# Extract the simulated data.
+prior_pc <- tibble(
+  cat_pref = as.vector(extract(sim_data)$cat_pref)
+)
+# Plot the prior predictive distribution.
+prior_pc %>% 
+  ggplot(aes(x = cat_pref)) +
+  geom_density()
+```
+
+```{r}
+# # Specify data.
+# data <- list(
+#   N = nrow(true_popn),                     # Number of observations.
+#   K = 2,                    # Number of groups.
+#   I = 65,                                # Number of observation-level covariates.
+#   
+#   cat_pref = true_popn$cat_pref,               # Vector of observations.
+#   male = as.numeric(as.factor(true_popn$male)),            # Vector of group assignments.
+#   eth = true_popn$eth,       # Vector of brands covariates.
+#   age = true_popn$age,        # Vector of price covariates.
+#   income = true_popn$income,
+#   state = true_popn$state,
+#   
+#   gamma_mean = 0.5,                                # Mean for the hyperprior on gamma.
+#   gamma_var = .2,                                 # Variance for the hyperprior on gamma.
+#   tau_min = 0,                                   # Minimum for the hyperprior on tau.
+#   tau_max = 1,                                   # Maximum for the hyperprior on tau.
+#   sigma_min = 0,                                 # Minimum for the hyperprior on tau.
+#   sigma_max = 1                                 # Maximum for the hyperprior on tau.
+# )
+# # Calibrate the model.
+# model03 <- stan(
+#   file = here::here("Code/mrp/hierarchical_model.stan"),
+#   data = data,
+#   control = list(adapt_delta = 0.99),
+#   seed = 42
+# )
+```
+
+
+
+```{r}
+# Posterior predictive check.
+# post_pc03 <- tibble(
+#   # Extract the posterior predicted values.
+#   intent = as.vector(extract(model03)$cat_pref_pc)
+# )
+# # Plot the posterior predictive distribution.
+# ggplot(post_pc03, aes(x = intent)) +
+#   geom_histogram() +
+#   xlim(1, 10) 
+# ggplot(purchase_intent, aes(x = intent)) +
+#   geom_histogram() +
+#   xlim(1, 10) 
+```
+
+
+```{r}
+# model03 %>%
+#   gather_draws(alpha[n, i]) %>%
+#   unite(.variable, .variable, n, i) %>%
+#   ggplot(aes(x = .value, y = .variable)) +
+#   geom_halfeyeh(.width = .95) +
+#   facet_wrap(
+#     ~ .variable,
+#     nrow = data$K,
+#     ncol = (data$I - 1),
+#     scales = "free"
+#   )
+```
+
+
+```{r}
+# Plot the betas.
+# model03 %>%
+#   gather_draws(beta[i]) %>%
+#   unite(.variable, .variable, i) %>%
+#   ggplot(aes(x = .value, y = .variable)) +
+#   geom_halfeyeh(.width = .95) +
+#   facet_wrap(
+#     ~ .variable,
+#     nrow = data$K,
+#     ncol = 1,
+#     scales = "free"
+#   )
 ```
 
 
