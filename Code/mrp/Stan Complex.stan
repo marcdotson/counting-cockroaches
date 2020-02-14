@@ -126,11 +126,13 @@ model {        // y ~ bernoulli_logit_glm (x, alpha, beta)
   if (can_do_bernoullilogitglm) {  // This is a bernoulli-logit generalised linear model (see stan guid 11.3)
     vector[K + K_smooth] coeff = K_smooth > 0 ? append_row(beta, beta_smooth) : beta;
     target += bernoulli_logit_glm_lpmf(y | XS, has_intercept ? gamma[1] : 0.0, coeff); //(int[] y | matrix x, real alpha)
+    // because this is on the log scale we can use target to add "stuff" to the equation see: https://discourse.mc-stan.org/t/target-and-multivariate-likelihood/8019/2
   } else if (prior_PD == 0) {
     // defines eta0, eta1
 // include /model/make_eta_bern.stan
     if (has_intercept == 1) {
-      if (link != 4) { // isn't bernoulloi_logit the link function // a link function transforms catergorical variables into continious variables so that a regression can be performed. 
+      if (link != 4) { // isn't bernoulloi_logit the link function 
+      // a link function transforms catergorical variables into continious variables so that a regression can be performed. 
         eta0 += gamma[1]; // I don't see where eta and gamma are coming into this 
         eta1 += gamma[1];
       }

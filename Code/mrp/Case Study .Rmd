@@ -1,6 +1,6 @@
 ---
 title: "MRP Case Study"
-author: "McKenna Weech"
+author: "McKenna Weech, Adam Hettinger, and Hannah Thompson"
 date: "1/17/2020"
 output: github_document
 ---
