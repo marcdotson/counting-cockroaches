@@ -156,69 +156,69 @@ print(sample)
 
 
 ```{r echo=FALSE}
-
-J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
-  poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
-  colnames(poststrat) <- c("male", "eth", "age","income", "state",'N')
-  count <- 0
-  for (i1 in 1:J[1]){
-    for (i2 in 1:J[2]){
-      for (i3 in 1:J[3]){
-        for (i4 in 1:J[4]){
-          for (i5 in 1:J[5]){
-              count <- count + 1
-              # Fill them in so we know what category we are referring to
-              poststrat[count, 1:5] <- c(i1-1, i2, i3, i4, i5)
-          }
-        }
-      }
-    }
-  }
-  # Proportion in each sample in the population
-  p_male <- c(0.52, 0.48)
-  p_eth <- c(0.5, 0.2, 0.3)
-  p_age <- c(0.2,.1,0.2,0.2, 0.10, 0.1, 0.1)
-  p_income<-c(.50,.35,.15)
-  p_state_tmp<-runif(50,10,20)
-  p_state<-p_state_tmp/sum(p_state_tmp)
-  poststrat$N<-0
-  for (j in 1:prod(J)){
-    poststrat$N[j] <- round(250e6 * p_male[poststrat[j,1]+1] * p_eth[poststrat[j,2]] *
-      p_age[poststrat[j,3]]*p_income[poststrat[j,4]]*p_state[poststrat[j,5]]) #Adjust the N to be the number observed in each category in each group
-  }
-
-  # Now let's adjust for the probability of response
-  p_response_baseline <- 0.01
-  p_response_male <- c(2, 0.8) / 2.8
-  p_response_eth <- c(1, 1.2, 2.5) / 4.7
-  p_response_age <- c(1, 0.4, 1, 1.5,  3, 5, 7) / 18.9
-  p_response_inc <- c(1, 0.9, 0.8) / 2.7
-  p_response_state <- rbeta(50, 1, 1)
-  p_response_state <- p_response_state / sum(p_response_state)
-  p_response <- rep(NA, prod(J))
-  for (j in 1:prod(J)) {
-    p_response[j] <-
-      p_response_baseline * p_response_male[poststrat[j, 1] + 1] *
-      p_response_eth[poststrat[j, 2]] * p_response_age[poststrat[j, 3]] *
-      p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
-  }
-
-  coef_male <- c(0,-0.3)
-  coef_eth <- c(0, 0.6, 0.9)
-  coef_age <- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
-  coef_income <- c(0,-0.2, 0.6)
-  coef_state <- c(0, round(rnorm(49, 0, 1), 1))
-  coef_age_male <- t(cbind(c(0, .1, .23, .3, .43, .5, .6),
-                           c(0, -.1, -.23, -.5, -.43, -.5, -.6)))
-  true_popn <- data.frame(poststrat[, 1:5], service_failure = rep(NA, prod(J)))
-  for (j in 1:prod(J)) {
-    true_popn$satisfaction[j] <- plogis(
-      coef_male[poststrat[j, 1] + 1] +
-        coef_eth[poststrat[j, 2]] + coef_age[poststrat[j, 3]] +
-        coef_income[poststrat[j, 4]] + coef_state[poststrat[j, 5]] +
-        coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
-      )
-  }
+# 
+# J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
+#   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
+#   colnames(poststrat) <- c("male", "eth", "age","income", "state",'N')
+#   count <- 0
+#   for (i1 in 1:J[1]){
+#     for (i2 in 1:J[2]){
+#       for (i3 in 1:J[3]){
+#         for (i4 in 1:J[4]){
+#           for (i5 in 1:J[5]){
+#               count <- count + 1
+#               # Fill them in so we know what category we are referring to
+#               poststrat[count, 1:5] <- c(i1-1, i2, i3, i4, i5)
+#           }
+#         }
+#       }
+#     }
+#   }
+#   # Proportion in each sample in the population
+#   p_male <- c(0.52, 0.48)
+#   p_eth <- c(0.5, 0.2, 0.3)
+#   p_age <- c(0.2,.1,0.2,0.2, 0.10, 0.1, 0.1)
+#   p_income<-c(.50,.35,.15)
+#   p_state_tmp<-runif(50,10,20)
+#   p_state<-p_state_tmp/sum(p_state_tmp)
+#   poststrat$N<-0
+#   for (j in 1:prod(J)){
+#     poststrat$N[j] <- round(250e6 * p_male[poststrat[j,1]+1] * p_eth[poststrat[j,2]] *
+#       p_age[poststrat[j,3]]*p_income[poststrat[j,4]]*p_state[poststrat[j,5]]) #Adjust the N to be the number observed in each category in each group
+#   }
+# 
+#   # Now let's adjust for the probability of response
+#   p_response_baseline <- 0.01
+#   p_response_male <- c(2, 0.8) / 2.8
+#   p_response_eth <- c(1, 1.2, 2.5) / 4.7
+#   p_response_age <- c(1, 0.4, 1, 1.5,  3, 5, 7) / 18.9
+#   p_response_inc <- c(1, 0.9, 0.8) / 2.7
+#   p_response_state <- rbeta(50, 1, 1)
+#   p_response_state <- p_response_state / sum(p_response_state)
+#   p_response <- rep(NA, prod(J))
+#   for (j in 1:prod(J)) {
+#     p_response[j] <-
+#       p_response_baseline * p_response_male[poststrat[j, 1] + 1] *
+#       p_response_eth[poststrat[j, 2]] * p_response_age[poststrat[j, 3]] *
+#       p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
+#   }
+# 
+#   coef_male <- c(0,-0.3)
+#   coef_eth <- c(0, 0.6, 0.9)
+#   coef_age <- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
+#   coef_income <- c(0,-0.2, 0.6)
+#   coef_state <- c(0, round(rnorm(49, 0, 1), 1))
+#   coef_age_male <- t(cbind(c(0, .1, .23, .3, .43, .5, .6),
+#                            c(0, -.1, -.23, -.5, -.43, -.5, -.6)))
+#   true_popn <- data.frame(poststrat[, 1:5], service_failure = rep(NA, prod(J)))
+#   for (j in 1:prod(J)) {
+#     true_popn$satisfaction[j] <- plogis(
+#       coef_male[poststrat[j, 1] + 1] +
+#         coef_eth[poststrat[j, 2]] + coef_age[poststrat[j, 3]] +
+#         coef_income[poststrat[j, 4]] + coef_state[poststrat[j, 5]] +
+#         coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
+#       )
+#   }
 ```
 
 Now that we have our simulated data, we now need our hierarchal stan model. 
@@ -231,10 +231,10 @@ data {
   int<lower = 1> K;                      // Number of groups.
   int<lower = 1> I;                      // Number of observation-level covariates.
   
-  real satisfaction[N];                        // Vector of observations.
+  real service_failure[N];                        // Vector of observations.
   int<lower = 1, upper = K> male[N];        // Vector of group assignments.
-  int eth[N];                               // Vector of ethnicity covariates.
-  int age[N];                               // Vector of age covariates.
+  int age[N];                               // Vector of ethnicity covariates.
+  int eth[N];                               // Vector of age covariates.
   int income[N];                          // Vector of income covariates.
   int state[N];                          // Vector of state covariates.
   
@@ -248,8 +248,8 @@ data {
 
 // Parameters and hyperparameters.
 parameters {
-  matrix[K, (I - 1)] alpha;              // Matrix of observation-level brand coefficients.
-  vector[K] beta;                        // Vector of observation-level price coefficients.
+  matrix[K, (I - 1)] alpha;              // Matrix of observation-level gender coefficients.
+  vector[K] beta;                        // Vector of all other observation-level coefficients.
   real gamma;                            // Mean of the population model.
   real<lower=0> tau;                     // Variance of the population model.
   real<lower=0> sigma;                   // Variance of the observation model.
@@ -271,22 +271,22 @@ model {
     beta[k] ~ normal(gamma, tau);
   }
   for (n in 1:N) {
-    mu[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
   }
-  cat_pref ~ normal(mu, sigma);
+  service_failure ~ normal(mu, sigma);
 }
 
 // Generate predictions using the posterior.
 generated quantities {
   vector[N] mu_pc;                       // Declare mu for predicted linear model.
-  real cat_pref_pc[N];                     // Vector of predicted observations.
+  real service_failure_pc[N];                     // Vector of predicted observations.
 
   // Generate posterior prediction distribution.
   for (n in 1:N) {
-    mu_pc[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu_pc[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
-    cat_pref_pc[n] = normal_rng(mu_pc[n], sigma);
+    service_failure_pc[n] = normal_rng(mu_pc[n], sigma);
   }
 }
 
