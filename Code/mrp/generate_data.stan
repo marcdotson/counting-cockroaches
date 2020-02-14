@@ -1,3 +1,4 @@
+
 // Index values, observations, covariates, and hyperior values.
 data {
   int<lower = 1> N;                      // Number of observations.
@@ -20,14 +21,14 @@ data {
 
 // Generate data according to the hierarchical regression.
 generated quantities {
-  matrix[K, (I - 1)] alpha;              // Matrix of observation-level brand coefficients.
-  vector[K] beta;                        // Vector of observation-level price coefficients.
+  matrix[K, (I - 1)] alpha;              // Matrix of observation-level gender coefficients.
+  vector[K] beta;                        // Vector of all other observation-level coefficients.
   real gamma;                            // Mean of the population model.
   real<lower=0> tau;                     // Variance of the population model.
   real<lower=0> sigma;                   // Variance of the observation model.
   
   vector[N] mu;                          // Declare mu for linear model.
-  real cat_pref[N];                        // Vector of observations.
+  real service_failure[N];                        // Vector of observations.
 
   gamma = normal_rng(gamma_mean, gamma_var);
   tau = uniform_rng(tau_min, tau_max);
@@ -41,8 +42,8 @@ generated quantities {
     beta[k] = normal_rng(gamma, tau);
   }
   for (n in 1:N) {
-    mu[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
-    income[n] + beta[male[n]] * state[n];
-    cat_pref[n] = normal_rng(mu[n], sigma);
+    mu[n] = inv_logit(alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    income[n] + beta[male[n]] * state[n]);
+    service_failure[n] = normal_rng(mu[n], sigma);
   }
 }
