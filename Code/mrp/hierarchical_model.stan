@@ -1,13 +1,14 @@
+
 // Index values, observations, and covariates.
 data {
   int<lower = 1> N;                      // Number of observations.
   int<lower = 1> K;                      // Number of groups.
   int<lower = 1> I;                      // Number of observation-level covariates.
   
-  real satisfaction[N];                        // Vector of observations.
+  real service_failure[N];                        // Vector of observations.
   int<lower = 1, upper = K> male[N];        // Vector of group assignments.
-  int eth[N];                               // Vector of ethnicity covariates.
-  int age[N];                               // Vector of age covariates.
+  int age[N];                               // Vector of ethnicity covariates.
+  int eth[N];                               // Vector of age covariates.
   int income[N];                          // Vector of income covariates.
   int state[N];                          // Vector of state covariates.
   
@@ -44,21 +45,21 @@ model {
     beta[k] ~ normal(gamma, tau);
   }
   for (n in 1:N) {
-    mu[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
   }
-  cat_pref ~ normal(mu, sigma);
+  service_failure ~ normal(mu, sigma);
 }
 
 // Generate predictions using the posterior.
 generated quantities {
   vector[N] mu_pc;                       // Declare mu for predicted linear model.
-  real cat_pref_pc[N];                     // Vector of predicted observations.
+  real service_failure_pc[N];                     // Vector of predicted observations.
 
   // Generate posterior prediction distribution.
   for (n in 1:N) {
-    mu_pc[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu_pc[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
-    cat_pref_pc[n] = normal_rng(mu_pc[n], sigma);
+    service_failure_pc[n] = normal_rng(mu_pc[n], sigma);
   }
 }
