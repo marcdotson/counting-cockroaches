@@ -64,10 +64,10 @@ For this first iteration of modeling, we will be generating our own
 data. We will generate a population, and sample from it in order to
 build an MRP model.
 
-We will be modeling our populations `satisfaction`. This will eventually
-translate into measuring service severity when we apply our model to our
-real data. We will be looking at common characteristics like `gender`,
-`ethnicity`, `income`, `age`, and `state`.
+We will be modeling our populations `service_failure`. This will
+eventually translate into measuring service severity when we apply our
+model to our real data. We will be looking at common characteristics
+like `gender`, `ethnicity`, `income`, `age`, and `state`.
 
 The following code will make a function `simulate_mrp_data` that will
 help us make our simulated data, and sample from it in such a way that
@@ -180,6 +180,7 @@ simulate_mrp_data <- function(n) {
 mrp_sim <- simulate_mrp_data(n=1200)
 sample <- mrp_sim[["sample"]]
 
+<<<<<<< HEAD
 print(sample)
 ```
 
@@ -1384,6 +1385,65 @@ print(sample)
     ## 1198               1    0   7   3      2    30 1198
     ## 1199               1    0   5   3      2    30 1199
     ## 1200               1    0   6   1      1    38 1200
+=======
+head(sample)
+```
+
+    ##   service_failure male age eth income state id
+    ## 1               0    0   6   3      1    35  1
+    ## 2               1    0   7   3      1     7  2
+    ## 3               0    0   1   1      1    27  3
+    ## 4               1    0   6   1      1    23  4
+    ## 5               1    0   6   3      1    10  5
+    ## 6               1    0   7   1      2    23  6
+
+We now have need for a logistic regresson model in order to predict a
+binary outcome for ‘service\_failure’ so we will make a hierarchal logit
+model
+
+# Hierarchal Logit Model
+
+``` 
+
+ data {
+   // Define variables in data
+   // Number of observations (an integer)
+   int<lower=0> N;
+   // Number of parameters
+   int<lower=0> p;
+   // Variables
+   int death[N];
+   int<lower=0>  qsmk[N];
+   int<lower=0>  sex[N];
+   real<lower=0> age[N];
+   int<lower=0>  race[N];
+   real<lower=0> smokeyrs[N];
+ }
+
+ parameters {
+   // Define parameters to estimate
+   real beta[p];
+ }
+
+ transformed parameters  {
+   // Probability trasformation from linear predictor
+   real<lower=0> odds[N];
+   real<lower=0, upper=1> prob[N];
+
+   for (i in 1:N) {
+     odds[i] <- exp(beta[1] + beta[2]*qsmk[i] + beta[3]*sex[i] + beta[4]*age[i] + beta[5]*race[i] + beta[6]*smokeyrs[i]);
+     prob[i] <- odds[i] / (odds[i] + 1);
+   }
+ }
+
+ model {
+   // Prior part of Bayesian inference (flat if unspecified)
+
+  // Likelihood part of Bayesian inference
+    death ~ bernoulli(prob);
+}
+```
+>>>>>>> ad5e6900e03b3cd90ed6c3fd03470401ec6d98f2
 
 Now that we have our simulated data, we now need our hierarchal stan
 model.
@@ -1396,10 +1456,10 @@ data {
   int<lower = 1> K;                      // Number of groups.
   int<lower = 1> I;                      // Number of observation-level covariates.
   
-  real satisfaction[N];                        // Vector of observations.
+  real service_failure[N];                        // Vector of observations.
   int<lower = 1, upper = K> male[N];        // Vector of group assignments.
-  int eth[N];                               // Vector of ethnicity covariates.
-  int age[N];                               // Vector of age covariates.
+  int age[N];                               // Vector of ethnicity covariates.
+  int eth[N];                               // Vector of age covariates.
   int income[N];                          // Vector of income covariates.
   int state[N];                          // Vector of state covariates.
   
@@ -1413,8 +1473,8 @@ data {
 
 // Parameters and hyperparameters.
 parameters {
-  matrix[K, (I - 1)] alpha;              // Matrix of observation-level brand coefficients.
-  vector[K] beta;                        // Vector of observation-level price coefficients.
+  matrix[K, (I - 1)] alpha;              // Matrix of observation-level gender coefficients.
+  vector[K] beta;                        // Vector of all other observation-level coefficients.
   real gamma;                            // Mean of the population model.
   real<lower=0> tau;                     // Variance of the population model.
   real<lower=0> sigma;                   // Variance of the observation model.
@@ -1436,22 +1496,22 @@ model {
     beta[k] ~ normal(gamma, tau);
   }
   for (n in 1:N) {
-    mu[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
   }
-  cat_pref ~ normal(mu, sigma);
+  service_failure ~ normal(mu, sigma);
 }
 
 // Generate predictions using the posterior.
 generated quantities {
   vector[N] mu_pc;                       // Declare mu for predicted linear model.
-  real cat_pref_pc[N];                     // Vector of predicted observations.
+  real service_failure_pc[N];                     // Vector of predicted observations.
 
   // Generate posterior prediction distribution.
   for (n in 1:N) {
-    mu_pc[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
+    mu_pc[n] = alpha[male[n], age[n]] + beta[male[n]] * eth[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
-    cat_pref_pc[n] = normal_rng(mu_pc[n], sigma);
+    service_failure_pc[n] = normal_rng(mu_pc[n], sigma);
   }
 }
 ```
@@ -1483,14 +1543,14 @@ data {
 
 // Generate data according to the hierarchical regression.
 generated quantities {
-  matrix[K, (I - 1)] alpha;              // Matrix of observation-level brand coefficients.
-  vector[K] beta;                        // Vector of observation-level price coefficients.
+  matrix[K, (I - 1)] alpha;              // Matrix of observation-level gender coefficients.
+  vector[K] beta;                        // Vector of all other observation-level coefficients.
   real gamma;                            // Mean of the population model.
   real<lower=0> tau;                     // Variance of the population model.
   real<lower=0> sigma;                   // Variance of the observation model.
   
   vector[N] mu;                          // Declare mu for linear model.
-  real cat_pref[N];                        // Vector of observations.
+  real service_failure[N];                        // Vector of observations.
 
   gamma = normal_rng(gamma_mean, gamma_var);
   tau = uniform_rng(tau_min, tau_max);
@@ -1506,7 +1566,7 @@ generated quantities {
   for (n in 1:N) {
     mu[n] = alpha[male[n], eth[n]] + beta[male[n]] * age[n] + beta[male[n]] * 
     income[n] + beta[male[n]] * state[n];
-    cat_pref[n] = normal_rng(mu[n], sigma);
+    service_failure[n] = normal_rng(mu[n], sigma);
   }
 }
 ```
@@ -1557,22 +1617,28 @@ sim_data <- stan(
     ## Chain 1: Iteration: 10 / 10 [100%]  (Sampling)
     ## Chain 1: 
     ## Chain 1:  Elapsed Time: 0 seconds (Warm-up)
+<<<<<<< HEAD
     ## Chain 1:                0.014095 seconds (Sampling)
     ## Chain 1:                0.014095 seconds (Total)
+=======
+    ## Chain 1:                0.023 seconds (Sampling)
+    ## Chain 1:                0.023 seconds (Total)
+>>>>>>> ad5e6900e03b3cd90ed6c3fd03470401ec6d98f2
     ## Chain 1:
 
 ``` r
 # Extract the simulated data.
 prior_pc <- tibble(
-  cat_pref = as.vector(extract(sim_data)$cat_pref)
+  service_failure = as.vector(extract(sim_data)$service_failure)
 )
 # Plot the prior predictive distribution.
 prior_pc %>% 
-  ggplot(aes(x = cat_pref)) +
+  ggplot(aes(x = service_failure)) +
   geom_density()
 ```
 
 ![](Case-Study-_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+<<<<<<< HEAD
 
 ``` r
 # # Specify data.
@@ -1647,6 +1713,8 @@ prior_pc %>%
 #     scales = "free"
 #   )
 ```
+=======
+>>>>>>> ad5e6900e03b3cd90ed6c3fd03470401ec6d98f2
 
 ### Postratification
 
@@ -1656,22 +1724,18 @@ have a poststrat\_prob yet so it freaks out
 For the postratification portion we take the estimate that we get from
 the model times poststrat\(/N / sum(postsrat\)N)
 
-``` r
-poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
-model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
-round(model_popn_pref, 3)
-```
+    poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
+    model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
+    round(model_popn_pref, 3)
 
 Because we are using simulated data we can see how our poststratified
 predictions compare to the true population
 
-``` r
-sample_popn_pref <- mean(sample$satisfaction)
-round(sample_popn_pref, 3)
-
-compare2 <- compare2 +
-  geom_hline(yintercept = model_popn_pref[1], colour = '#2ca25f', size = 1) +
-  geom_text(aes(x = 5.2, y = model_popn_pref[1] + .025), label = "MRP", colour = '#2ca25f')
-bayesplot_grid(compare, compare2,
-               grid_args = list(nrow = 1, widths = c(8, 1)))
-```
+    sample_popn_pref <- mean(sample$satisfaction)
+    round(sample_popn_pref, 3)
+    
+    compare2 <- compare2 +
+      geom_hline(yintercept = model_popn_pref[1], colour = '#2ca25f', size = 1) +
+      geom_text(aes(x = 5.2, y = model_popn_pref[1] + .025), label = "MRP", colour = '#2ca25f')
+    bayesplot_grid(compare, compare2,
+                   grid_args = list(nrow = 1, widths = c(8, 1)))
