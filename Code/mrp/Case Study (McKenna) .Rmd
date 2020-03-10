@@ -259,11 +259,46 @@ stan_values <- list(
 ```
 
 ```{r}
+# Run stan code. 
 fit3 <- stan(
-  file = here::here("Code", "mrp", "logit_simple.stan"),
+  file = here::here("Code", "mrp", "sim_regression.stan"),
   data = stan_values,
   seed = 42
 )
+```
+
+```{r}
+# Check trace plots.
+fit3 %>%
+  mcmc_trace(
+    pars = c("beta1", "beta2", "beta3", "beta4", "beta5"),
+    n_warmup = 500,
+    facet_args = list(nrow = 2, labeller = label_parsed)
+  )
+```
+
+```{r}
+# Recover parameter values.
+par_values <- tibble(
+  .variable = c("mu", "tau"),
+  values = c(sim_values$mu, sim_values$tau),
+)
+```
+
+```{r}
+fit3 %>%
+  gather_draws(beta1, beta2, beta3, beta4, beta5) %>%
+  ggplot(aes(x = .value, y = .variable)) +
+  geom_halfeyeh(.width = .95) +
+  facet_wrap(
+    ~ .variable,
+    nrow = 2,
+    scales = "free"
+  )
+
+fit3_summary <- summary(fit3)
+
+fit3_summary
 ```
 
 ### Postratification 
