@@ -150,9 +150,44 @@ simulate_mrp_data <- function(n) {
 ```{r}
 
 mrp_sim <- simulate_mrp_data(n=1200)
+
 sample <- mrp_sim[["sample"]]
+poststrat <- mrp_sim[["poststrat"]]
+true_popn <- mrp_sim[["true_popn"]]
 
 head(sample)
+
+```
+```{r}
+stan_data <- list( 
+  N = nrow(sample), 
+  service_failure = sample$service_failure,
+  male = sample$male, 
+  age = sample$age,
+  eth = sample$eth, 
+  income = sample$income, 
+  state = sample$state)
+```
+
+```{r}
+fit <- stan(
+  file = here::here("Code", "mrp", "logit_simple.stan"),
+  data = stan_data,
+  seed = 42
+)
+
+```
+```{r}
+fit %>%
+  mcmc_trace(
+    pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'),
+    n_warmup = 500,
+    facet_args = list(nrow = 2, labeller = label_parsed)
+  )
+
+print(fit, pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'))
+```
+```{r}
 
 ```
 
@@ -420,7 +455,7 @@ sim_values <- list(
 )
 # Generate data.
 sim_data <- stan(
-  file = here::here("Code/mrp/generate_data.stan"),
+  file = here::here("Code", "mrp", "generate_data.stan"),
   data = sim_values,
   iter = 10,
   chains = 1,
@@ -523,6 +558,31 @@ prior_pc %>%
 #   )
 ```
 
+Trying to make the simple model work with the data from the vignette. It seems to not be working but the error code is not clear on why it's not working. 
+
+```{r}
+stan_values <- list(
+  N = 1200,                                       # Number of observations.
+  K = 2,                                         # Number of groups.
+  I = 65,                                         # Number of observation-level covariates.
+  
+  male = sample$male,                 
+  eth = sample$eth,      
+  age = sample$age,        
+  income = sample$income,
+  state = sample$state,
+  service_failure = sample$service_failure
+)
+
+```
+
+```{r}
+fit3 <- stan(
+  file = here::here("Code", "mrp", "logit_simple.stan"),
+  data = stan_values,
+  seed = 42
+)
+```
 
 ### Postratification 
 Note: for now I have set these chuncks to eval = false because we don
