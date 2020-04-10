@@ -33,6 +33,7 @@ theme_set(bayesplot::theme_default())
 library(dplyr)
 library(tidyr)
 library(tidybayes)
+library(here)
 
 options(mc.cores = parallel::detectCores()) # Set Stan to use all availible cores
 rstan_options(auto_write = TRUE) # Don't recompile Stan code that hasn't changed
@@ -44,7 +45,7 @@ We will be modeling our populations `service_failure`. This will eventually tran
 
 The following code will make a function `simulate_mrp_data` that will help us make our simulated data, and sample from it in such a way that we can use and see the value in postratification.
 
-```{r}
+```{r, eval = FALSE}
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
@@ -149,13 +150,9 @@ simulate_mrp_data <- function(n) {
 
 ```{r}
 
-mrp_sim <- simulate_mrp_data(n=1200)
-
-sample <- mrp_sim[["sample"]]
-poststrat <- mrp_sim[["poststrat"]]
-true_popn <- mrp_sim[["true_popn"]]
-
-head(sample)
+sample <- read_csv(here("code", "mrp", "data", "sample.csv"))
+proststrat <- read_csv(here("code", "mrp", "data", "poststrat.csv"))
+true_popn <- read_csv(here("code", "mrp", "data", "true_popn.csv"))
 
 ```
 ```{r}
@@ -222,7 +219,7 @@ data_list <- list(
   L <- 6300,                                 # Number of groups. 
   y <- sample$service_failure,               # Outcome variables. 
   ll <- sample(6300, 1200, replace = TRUE),  # Group assignment. 
-  x <- as.matrix(matrix)                     # Vector of predictors. 
+  x <- as.matrix(matrix)                     # Matrix of predictors. 
 )
 ```
 
