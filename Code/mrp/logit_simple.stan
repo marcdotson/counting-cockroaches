@@ -1,12 +1,9 @@
 data {
   int<lower=0> N;
-  int<lower = 1> K;                         // Number of groups.
   vector[N] male;
   vector[N] age;
   vector[N] eth;
   vector[N] income;
-  int<lower=0,upper=1> service_failure[N];
-  int<lower = 1, upper = K> g[N];           // Vector of group assignments.
 }
 parameters {
   real alpha;
