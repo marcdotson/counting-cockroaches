@@ -1,3 +1,5 @@
+
+
 data {
   int<lower=1> D;
   int<lower=0> N;
@@ -18,5 +20,9 @@ model {
   for (l in 1:L) 
     beta[l] ~ normal(mu, sigma);
   for (n in 1:N)
-    y[n] ~ bernoulli_logit()(x[n] * beta[ll[n]]));
+    y[n] ~ bernoulli_logit((x[n] * beta[ll[n]]));
 }
+
+
+
+
