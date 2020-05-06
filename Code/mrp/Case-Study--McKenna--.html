@@ -369,218 +369,109 @@ summary {
 </div>
 
 
-<p>Firms employ a variety of passive listening platforms (e.g., customer comment cards, help lines, social media) that elicit a variety of complaints. Since these complaints are self-selected, it isn’t obvious if complaints are widespread or genuinely indicative of systemic service failures. In other words, how can can a firm know when complaints can be ignored and when they need to addressed? This issue is related to a larger class of problems where the goal is to make inference about the size of a population from a non-random sample (e.g., the German tank problem). In this paper, we develop a model that uses a variety of observed customer complaints on Twitter to make inference about the severity of service failures.</p>
-<div id="describe-the-model-conceptually" class="section level2">
-<h2>Describe the model conceptually</h2>
-<p>It has been said that if you observe a cockroach on your floor, there are likely thousands inside the walls of your home. Following this analogy, our hope is to count the cockroaches we can see and calculate how many are hiding in the walls.</p>
-<p>For the first portion of this case, we will be making a model around simulated data. Each observation will represent a single tweet, and we will be scoring them for satisfaction. We will use a multiple hierarchal linear model to predict satisfaction from the other known variables. Once we have the model predicting well on our simulated data, we will fit it to our real data, and from there use our real data satisfaction scores to measure service or product failure severity.</p>
-<p>Along with making a model, we will also be using poststratification to correct the weights in our simulated sample and real data to more correctly represent the population. This will be explained in greater detail as we postratify in this first iteration of the model, so we can explain and see the benefit of a full multiple regression with postratification model (MRP).</p>
-<p>To begin, we will start by generating our simulated data. It will run through an initial simple linear model and postratification.</p>
+<div id="intro" class="section level2">
+<h2>Intro</h2>
+<p>Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowlege sample are classified into cells baised off of choosen classification variables. Heirarchical bayesian models are used to infer(?) treatment within cells and population knowlege is used to weight each cell according to their prevelance within the total population.</p>
 </div>
-<div id="iteration-1-simulation-data-and-simple-model" class="section level1">
-<h1>Iteration 1: Simulation Data and Simple Model</h1>
-<p>This initial block of code, we will just be loading in the needed packages and settings to make our sample and model code run.</p>
-<pre class="r"><code>library(tidyverse) #Load packages
-library(rstan)
-library(rstanarm)
-library(ggplot2)
-library(bayesplot)
-theme_set(bayesplot::theme_default())
-library(dplyr)
-library(tidyr)
-library(tidybayes)
-
-options(mc.cores = parallel::detectCores()) # Set Stan to use all availible cores
-rstan_options(auto_write = TRUE) # Don't recompile Stan code that hasn't changed</code></pre>
-<p>For this first iteration of modeling, we will be generating our own data. We will generate a population, and sample from it in order to build an MRP model.</p>
-<p>We will be modeling our populations <code>service_failure</code>. This will eventually translate into measuring service severity when we apply our model to our real data. We will be looking at common characteristics like <code>gender</code>, <code>ethnicity</code>, <code>income</code>, <code>age</code>, and <code>state</code>.</p>
-<p>The following code will make a function <code>simulate_mrp_data</code> that will help us make our simulated data, and sample from it in such a way that we can use and see the value in postratification.</p>
-<pre class="r"><code>simulate_mrp_data &lt;- function(n) {
-  J &lt;- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
-  poststrat &lt;- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
-  colnames(poststrat) &lt;- c(&quot;male&quot;, &quot;eth&quot;, &quot;age&quot;,&quot;income&quot;, &quot;state&quot;,'N')
-  count &lt;- 0
-  for (i1 in 1:J[1]){
-    for (i2 in 1:J[2]){
-      for (i3 in 1:J[3]){
-        for (i4 in 1:J[4]){
-          for (i5 in 1:J[5]){
-              count &lt;- count + 1
-              # Fill them in so we know what category we are referring to
-              poststrat[count, 1:5] &lt;- c(i1-1, i2, i3, i4, i5)
-          }
-        }
-      }
-    }
-  }
-  # Proportion in each sample in the population
-  p_male &lt;- c(0.52, 0.48)
-  p_eth &lt;- c(0.5, 0.2, 0.3)
-  p_age &lt;- c(0.2,.1,0.2,0.2, 0.10, 0.1, 0.1)
-  p_income&lt;-c(.50,.35,.15)
-  p_state_tmp&lt;-runif(50,10,20)
-  p_state&lt;-p_state_tmp/sum(p_state_tmp)
-  poststrat$N&lt;-0
-  for (j in 1:prod(J)){
-    poststrat$N[j] &lt;- round(250e6 * p_male[poststrat[j,1]+1] * p_eth[poststrat[j,2]] *
-      p_age[poststrat[j,3]]*p_income[poststrat[j,4]]*p_state[poststrat[j,5]]) #Adjust the N to be the number observed in each category in each group
-  }
-
-  # Now let's adjust for the probability of response
-  p_response_baseline &lt;- 0.01
-  p_response_male &lt;- c(2, 0.8) / 2.8
-  p_response_eth &lt;- c(1, 1.2, 2.5) / 4.7
-  p_response_age &lt;- c(1, 0.4, 1, 1.5,  3, 5, 7) / 18.9
-  p_response_inc &lt;- c(1, 0.9, 0.8) / 2.7
-  p_response_state &lt;- rbeta(50, 1, 1)
-  p_response_state &lt;- p_response_state / sum(p_response_state)
-  p_response &lt;- rep(NA, prod(J))
-  for (j in 1:prod(J)) {
-    p_response[j] &lt;-
-      p_response_baseline * p_response_male[poststrat[j, 1] + 1] *
-      p_response_eth[poststrat[j, 2]] * p_response_age[poststrat[j, 3]] *
-      p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
-  }
-  people &lt;- sample(prod(J), n, replace = TRUE, prob = poststrat$N * p_response)
-
-  ## For respondent i, people[i] is that person's poststrat cell,
-  ## some number between 1 and 32
-  n_cell &lt;- rep(NA, prod(J))
-  for (j in 1:prod(J)) {
-    n_cell[j] &lt;- sum(people == j)
-  }
-
-  coef_male &lt;- c(0,-0.3)
-  coef_eth &lt;- c(0, 0.6, 0.9)
-  coef_age &lt;- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
-  coef_income &lt;- c(0,-0.2, 0.6)
-  coef_state &lt;- c(0, round(rnorm(49, 0, 1), 1))
-  coef_age_male &lt;- t(cbind(c(0, .1, .23, .3, .43, .5, .6),
-                           c(0, -.1, -.23, -.5, -.43, -.5, -.6)))
-  true_popn &lt;- data.frame(poststrat[, 1:5], service_failure = rep(NA, prod(J)))
-  for (j in 1:prod(J)) {
-    true_popn$satisfaction[j] &lt;- plogis(
-      coef_male[poststrat[j, 1] + 1] +
-        coef_eth[poststrat[j, 2]] + coef_age[poststrat[j, 3]] +
-        coef_income[poststrat[j, 4]] + coef_state[poststrat[j, 5]] +
-        coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
-      )
-  }
-
-  #male or not, eth, age, income level, state, city
-  y &lt;- rbinom(n, 1, true_popn$satisfaction[people])
-  male &lt;- poststrat[people, 1]
-  eth &lt;- poststrat[people, 2]
-  age &lt;- poststrat[people, 3]
-  income &lt;- poststrat[people, 4]
-  state &lt;- poststrat[people, 5]
-
-  sample &lt;- data.frame(service_failure = y,
-                       male, age, eth, income, state,
-                       id = 1:length(people))
-
-  #Make all numeric:
-  for (i in 1:ncol(poststrat)) {
-    poststrat[, i] &lt;- as.numeric(poststrat[, i])
-  }
-  for (i in 1:ncol(true_popn)) {
-    true_popn[, i] &lt;- as.numeric(true_popn[, i])
-  }
-  for (i in 1:ncol(sample)) {
-    sample[, i] &lt;- as.numeric(sample[, i])
-  }
-  list(
-    sample = sample,
-    poststrat = poststrat,
-    true_popn = true_popn
-  )
-}</code></pre>
-<pre class="r"><code>mrp_sim &lt;- simulate_mrp_data(n=1200)
-
-sample &lt;- mrp_sim[[&quot;sample&quot;]]
-poststrat &lt;- mrp_sim[[&quot;poststrat&quot;]]
-true_popn &lt;- mrp_sim[[&quot;true_popn&quot;]]
-
-head(sample)</code></pre>
-<pre><code>##   service_failure male age eth income state id
-## 1               1    0   5   2      2    16  1
-## 2               1    0   7   2      2    34  2
-## 3               1    0   4   1      1    38  3
-## 4               1    0   5   1      1    29  4
-## 5               0    1   6   3      1    33  5
-## 6               1    0   5   3      1    44  6</code></pre>
-<pre class="r"><code>stan_data &lt;- list( 
-  N = nrow(sample), 
-  service_failure = sample$service_failure,
-  male = sample$male, 
-  age = sample$age,
-  eth = sample$eth, 
-  income = sample$income, 
-  state = sample$state)</code></pre>
-<pre class="r"><code>fit &lt;- stan(
-  file = here::here(&quot;Code&quot;, &quot;mrp&quot;, &quot;logit_simple.stan&quot;),
-  data = stan_data,
-  seed = 42
-)</code></pre>
-<pre><code>## Error in new_CppObject_xp(fields$.module, fields$.pointer, ...) : 
-##   Exception: variable does not exist; processing stage=data initialization; variable name=K; base type=int  (in 'model48c34c8e688d_logit_simple' at line 3)</code></pre>
-<pre><code>## failed to create the sampler; sampling not done</code></pre>
-<pre class="r"><code>fit %&gt;%
-  mcmc_trace(
-    pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'),
-    n_warmup = 500,
-    facet_args = list(nrow = 2, labeller = label_parsed)
-  )
-
-print(fit, pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'))</code></pre>
-<p>We now have need for a logistic regresson model in order to predict a binary outcome for ‘service_failure’ so we will make a hierarchal logit model</p>
-<p>Trying to make the simple model work with the data from the vignette. It seems to not be working but the error code is not clear on why it’s not working.</p>
-<pre class="r"><code> matrix &lt;- sample %&gt;% 
-  select(male, age, eth, income, state)
-
-x &lt;- as.matrix(matrix)</code></pre>
-<pre class="r"><code>stan_data &lt;- list(
-  N = 1200,                                       # Number of observations.
-  K = 6300,                                       # Number of groups.
-  g = sample(6300, 1200, replace = TRUE),         # Vector of group assignments
-  
-  male = sample$male,                 
-  eth = sample$eth,      
-  age = sample$age,        
-  income = sample$income,
-  state = sample$state,
-  service_failure = sample$service_failure
-)</code></pre>
+<div id="datacategoriescells" class="section level2">
+<h2>Data/Categories/Cells</h2>
+<p>Categorical classification variables are choosen and cell are assigned baised off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one varibale is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100.</p>
+<p>In this case study there are four classification variables choosen: age, income, ethnicity, gender, and state. Each vairbale is tranforemed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300 (7 x 3 x 3 x 2 x 50 = 6300).</p>
+<p>Data is generated using a function from…(find referance)</p>
+</div>
+<div id="model" class="section level2">
+<h2>Model</h2>
+<p>This case study will use generated data. The data is broken up into three data tables: sample, postratification, and population. The postratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model.</p>
+<p>First we will build a model to predict the our outcome for each cell. Then we will use the postratification table to correctly weight each cell to predict outcome for the whole population.</p>
+<p>We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells.</p>
+<div id="mckennas-logit-model" class="section level4">
+<h4>McKenna’s logit model</h4>
 <pre class="r"><code>data_list &lt;- list(
-  D &lt;- 5,                                    # Number of variables. 
-  N &lt;- 1200,                                 # Number of observations.
-  L &lt;- 6300,                                 # Number of groups. 
-  y &lt;- sample$service_failure,               # Outcome variables. 
-  ll &lt;- sample(6300, 1200, replace = TRUE),  # Group assignment. 
-  x &lt;- as.matrix(matrix)                     # Vector of predictors. 
-)</code></pre>
+  D &lt;- 5,                                                    # Number of variables. 
+  N &lt;- 1200,                                                 # Number of observations.
+  L &lt;- 6300,                                                 # Number of groups. 
+  y &lt;- sample$service_failure,                               # Outcome variables. 
+  ll &lt;- sample(6300, 1200, replace = TRUE),                  # Group assignment. 
+  x &lt;- matrix(sample %&gt;% 
+                select(male, age, eth, income, state))       # Matrix of predictors. 
+)
+
+D &lt;- 5
+N &lt;- 1200
+L &lt;- 6300
+y &lt;- sample$service_failure
+ll &lt;- sample(6300, 1200, replace = TRUE)</code></pre>
 <pre class="r"><code>fit &lt;- stan(
   file = here::here(&quot;Code&quot;, &quot;mrp&quot;, &quot;logit_hier.stan&quot;),
-  data = data_list,
+  data = &quot;data_list&quot;,
   seed = 42
 )</code></pre>
-<div id="postratification" class="section level3">
-<h3>Postratification</h3>
-<p>Note: for now I have set these chuncks to eval = false because we don t have a poststrat_prob yet so it freaks out</p>
-<p>For the postratification portion we take the estimate that we get from the model times poststrat<span class="math inline">\(/N / sum(postsrat\)</span>N)</p>
-<pre echo="FALSE"><code>poststrat_prob &lt;- posterior_prob %*% poststrat$N / sum(poststrat$N)
-model_popn_pref &lt;- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
-round(model_popn_pref, 3)</code></pre>
-<p>Because we are using simulated data we can see how our poststratified predictions compare to the true population</p>
-<pre echo="FALSE"><code>sample_popn_pref &lt;- mean(sample$satisfaction)
-round(sample_popn_pref, 3)
-
-compare2 &lt;- compare2 +
-  geom_hline(yintercept = model_popn_pref[1], colour = '#2ca25f', size = 1) +
-  geom_text(aes(x = 5.2, y = model_popn_pref[1] + .025), label = &quot;MRP&quot;, colour = '#2ca25f')
-bayesplot_grid(compare, compare2,
-               grid_args = list(nrow = 1, widths = c(8, 1)))</code></pre>
 </div>
+<div id="downes-logit-model" class="section level4">
+<h4>Downes logit model</h4>
+<pre class="r"><code># Observations. 
+outcome &lt;- sample$service_failure
+male &lt;- sample$male
+age &lt;- sample$age 
+eth &lt;- sample$eth 
+income &lt;- sample$income
+state &lt;- sample$state
+
+# Number of categories. 
+n &lt;- length(outcome)
+n_male &lt;- max(male)
+n_age &lt;- max(age)
+n_eth &lt;- max(eth)
+n_income &lt;- max(income)
+n_state &lt;- max(state)
+
+# Define parameters for Hamiltonian Monte Carlo algorithm
+n_iter &lt;- 1000
+n_chain &lt;- 4
+n_sim &lt;- (n_iter * n_chain)/2 </code></pre>
+<pre class="r"><code>stanfit_final &lt;- stan(file= &quot;downes_copy.stan&quot;,
+                        data=c(&quot;n&quot;,&quot;n_age&quot;,&quot;n_male&quot;,&quot;n_eth&quot;,&quot;n_income&quot;,&quot;n_state&quot;,
+                               &quot;outcome&quot;,&quot;age&quot;,&quot;male&quot;,&quot;eth&quot;,&quot;income&quot;,&quot;state&quot;), 
+                        iter=n_iter, chains=n_chain)</code></pre>
+</div>
+<div id="stan-user-guide-logit-model" class="section level4">
+<h4>Stan user guide logit model</h4>
+<pre class="r"><code>stan_data &lt;- list( 
+  age &lt;- sample$age, 
+  eth &lt;- sample$eth, 
+  income &lt;- sample$income, 
+  male &lt;- sample$male, 
+  state &lt;- sample$state, 
+  Y &lt;- sample$service_failure, 
+  N &lt;- length(Y))</code></pre>
+<pre class="r"><code>stanfit_final &lt;- stan(file= &quot;stan_mrp.stan&quot;,
+                        data= &quot;stan_data&quot;, 
+                        iter=n_iter, chains=n_chain)</code></pre>
+</div>
+</div>
+<div id="postratification" class="section level2">
+<h2>Postratification</h2>
+<p>Postratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people</p>
+<p><span class="math display">\[\omega=\displaystyle\frac{\]</span><em>{j=1}^{J}</em>{j}*N_{j}<span class="math display">\[}{\]</span><em>{j=1}^{J}N</em>{j}<span class="math display">\[}\]</span> Postratification can be performed in stan using the generated quantities block.</p>
+<pre class="r"><code>generated quantities {
+  real expect_pos = 0;
+  int total = 0;
+  for (b in 1:7)
+    for (c in 1:3)
+      for (d in 1:3)
+        for (f in 1:2)
+          for (g in 1:50) {
+        total += P[b, c, d, f, g];
+        expect_pos
+          += P[b, c, d, f, g]
+             * inv_logit(b0 + a_age[b] + a_eth[c] + a_income[d] + a_male[f] + a_state[g]);
+      }
+  real&lt;lower = 0, upper = 1&gt; phi = expect_pos / total;
+}           </code></pre>
+</div>
+<div id="compare-to-population" class="section level2">
+<h2>Compare to Population</h2>
+<p>Because we are using simulated data we can see how our poststratified predictions compare to the true population</p>
 </div>
 
 

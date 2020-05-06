@@ -5,25 +5,20 @@ date: "3/10/2020"
 output: html_document
 ---
 
+## Intro 
+Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowlege sample are classified into cells baised off of choosen classification variables. Heirarchical bayesian models are used to infer(?) treatment within cells and population knowlege is used to weight each cell according to their prevelance within the total population. 
 
-Firms employ a variety of passive listening platforms (e.g., customer comment cards, help lines, social media) that elicit a variety of complaints. Since these complaints are self-selected, it isn’t obvious if complaints are widespread or genuinely indicative of systemic service failures. In other words, how can can a firm know when complaints can be ignored and when they need to addressed? This issue is related to a larger class of problems where the goal is to make inference about the size of a population from a non-random sample (e.g., the German tank problem). In this paper, we develop a model that uses a variety of observed customer complaints on Twitter to make inference about the severity of service failures.
+## Data/Categories/Cells
+Categorical classification variables are choosen and cell are assigned baised off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one varibale is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100. 
 
-## Describe the model conceptually
+In this case study there are four classification variables choosen: age, income, ethnicity, gender, and state. Each vairbale is tranforemed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
 
-It has been said that if you observe a cockroach on your floor, there are likely thousands inside the walls of your home. Following this analogy, our hope is to count the cockroaches we can see and calculate how many are hiding in the walls.
-
-For the first portion of this case, we will be making a model around simulated data. Each observation will represent a single tweet, and we will be scoring them for satisfaction. We will use a multiple hierarchal linear model to predict satisfaction from the other known variables. Once we have the model predicting well on our simulated data, we will fit it to our real data, and from there use our real data satisfaction scores to measure service or product failure severity.
-
-Along with making a model, we will also be using poststratification to correct the weights in our simulated sample and real data to more correctly represent the population. This will be explained in greater detail as we postratify in this first iteration of the model, so we can explain and see the benefit of a full multiple regression with postratification model (MRP).
-
-To begin, we will start by generating our simulated data. It will run through an initial simple linear model and postratification.
+Data is generated using a function from...(find referance)
 
 
-# Iteration 1: Simulation Data and Simple Model
+## Model 
 
-This initial block of code, we will just be loading in the needed packages and settings to make our sample and model code run.
-
-```{r message = FALSE}
+```{r message = FALSE, echo = FALSE}
 library(tidyverse) #Load packages
 library(rstan)
 library(rstanarm)
@@ -39,15 +34,9 @@ options(mc.cores = parallel::detectCores()) # Set Stan to use all availible core
 rstan_options(auto_write = TRUE) # Don't recompile Stan code that hasn't changed
 ```
 
-For this first iteration of modeling, we will be generating our own data. We will generate a population, and sample from it in order to build an MRP model. The function will also generate an MRP table to use later to poststratify. 
 
-We will be modeling our populations `service_failure`. This will eventually translate into measuring service severity when we apply our model to our real data. We will be looking at common characteristics like `gender`, `ethnicity`, `income`, `age`, and `state`. 
-
-The following code will make a function `simulate_mrp_data` that will help us make our simulated data, and sample from it in such a way that we can use and see the value in postratification.
-
-We include the function here just for reference. The outputs have been previously saved out as "sample", "postrat", and "true_popn".
-
-```{r, eval = FALSE}
+```{r, eval = FALSE, echo = FALSE}
+# Data generating function for referance. 
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
@@ -150,122 +139,123 @@ simulate_mrp_data <- function(n) {
 }
 ```
 
-Here we will import our data generated by the function. 
 
-```{r}
+```{r, message = FALSE, echo = FALSE}
 
-sample <- read_csv(here:here("code", "mrp", "data", "sample.csv"))
-proststrat <- read_csv(here:here("code", "mrp", "data", "poststrat.csv"))
-true_popn <- read_csv(here:here("code", "mrp", "data", "true_popn.csv"))
-
-```
-We now have need for a logistic regresson model in order to predict a binary outcome for 'service_failure' so we will make a hierarchal logit model
-
-In this section we are working througha couple different model versions heading to the hierarichal model. 
-
-Here we are looking at running a simple logit model. 
-
-```{r}
-stan_data <- list( 
-  N = nrow(sample), 
-  service_failure = sample$service_failure,
-  male = sample$male, 
-  age = sample$age,
-  eth = sample$eth, 
-  income = sample$income, 
-  state = sample$state)
-```
-
-```{r}
-fit <- stan(
-  file = here::here("Code", "mrp", "logit_simple.stan"),
-  data = stan_data,
-  seed = 42
-)
-
-```
-```{r, eval = FALSE}
-fit %>%
-  mcmc_trace(
-    pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'),
-    n_warmup = 500,
-    facet_args = list(nrow = 2, labeller = label_parsed)
-  )
-
-print(fit, pars = c('alpha','beta1', 'beta2', 'beta3', 'beta4'))
-```
-
-Trying to make the simple model work with the data from the vignette. It seems to not be working but the error code is not clear on why it's not working. 
-```{r}
- matrix <- sample %>% 
-  select(male, age, eth, income, state)
-
-x <- as.matrix(matrix)
-```
-
-
-This is me thinking about what format we want the data in. 
-
-```{r}
-stan_data <- list(
-  N = 1200,                                       # Number of observations.
-  K = 6300,                                       # Number of groups.
-  g = sample(6300, 1200, replace = TRUE),         # Vector of group assignments
-  
-  male = sample$male,                 
-  eth = sample$eth,      
-  age = sample$age,        
-  income = sample$income,
-  state = sample$state,
-  service_failure = sample$service_failure
-)
+# Import data. 
+sample <- read_csv(here::here("code", "mrp", "data", "sample.csv"))
+proststrat <- read_csv(here::here("code", "mrp", "data", "poststrat.csv"))
+true_popn <- read_csv(here::here("code", "mrp", "data", "true_popn.csv"))
 
 ```
 
-Here we are trying to do a higherarical logit. 
+This case study will use generated data. The data is broken up into three data tables: sample, postratification, and population. The postratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
 
+First we will build a model to predict the our outcome for each cell. Then we will use the postratification table to correctly weight each cell to predict outcome for the whole population. 
+
+We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells. 
+ 
+#### McKenna's logit model  
 ```{r}
 data_list <- list(
-  D <- 5,                                    # Number of variables. 
-  N <- 1200,                                 # Number of observations.
-  L <- 6300,                                 # Number of groups. 
-  y <- sample$service_failure,               # Outcome variables. 
-  ll <- sample(6300, 1200, replace = TRUE),  # Group assignment. 
-  x <- as.matrix(matrix)                     # Matrix of predictors. 
+  D <- 5,                                                    # Number of variables. 
+  N <- 1200,                                                 # Number of observations.
+  L <- 6300,                                                 # Number of groups. 
+  y <- sample$service_failure,                               # Outcome variables. 
+  ll <- sample(6300, 1200, replace = TRUE),                  # Group assignment. 
+  x <- matrix(sample %>% 
+                select(male, age, eth, income, state))       # Matrix of predictors. 
 )
+
+D <- 5
+N <- 1200
+L <- 6300
+y <- sample$service_failure
+ll <- sample(6300, 1200, replace = TRUE)
+
 ```
 
 ```{r, eval = FALSE}
 fit <- stan(
   file = here::here("Code", "mrp", "logit_hier.stan"),
-  data = data_list,
+  data = "data_list",
   seed = 42
 )
 ```
+#### Downes logit model 
+```{r}
+# Observations. 
+outcome <- sample$service_failure
+male <- sample$male
+age <- sample$age 
+eth <- sample$eth 
+income <- sample$income
+state <- sample$state
+
+# Number of categories. 
+n <- length(outcome)
+n_male <- max(male)
+n_age <- max(age)
+n_eth <- max(eth)
+n_income <- max(income)
+n_state <- max(state)
+
+# Define parameters for Hamiltonian Monte Carlo algorithm
+n_iter <- 1000
+n_chain <- 4
+n_sim <- (n_iter * n_chain)/2 
 
 
-### Postratification 
-Note: for now I have set these chuncks to eval = false because we don
-t have a poststrat_prob yet so it freaks out 
-
-For the postratification portion we take the estimate that we get from the model times poststrat$/N / sum(postsrat$N) 
-
-```{ echo=FALSE}
-poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
-model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
-round(model_popn_pref, 3)
 ```
 
+```{r, eval = FALSE}
+stanfit_final <- stan(file= "downes_copy.stan",
+                        data=c("n","n_age","n_male","n_eth","n_income","n_state",
+                               "outcome","age","male","eth","income","state"), 
+                        iter=n_iter, chains=n_chain)
+```
+#### Stan user guide logit model 
+```{r}
+stan_data <- list( 
+  age <- sample$age, 
+  eth <- sample$eth, 
+  income <- sample$income, 
+  male <- sample$male, 
+  state <- sample$state, 
+  Y <- sample$service_failure, 
+  N <- length(Y))
+```
+
+```{r, eval = FALSE}
+stanfit_final <- stan(file= "stan_mrp.stan",
+                        data= "stan_data", 
+                        iter=n_iter, chains=n_chain)
+```
+
+## Postratification 
+
+Postratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people
+
+$$\omega=\displaystyle\frac{$$\sum_{j=1}^{J}\beta_{j}*N_{j}$$}{$$\sum_{j=1}^{J}N_{j}$$}$$
+Postratification can be performed in stan using the generated quantities block.
+
+```{r, eval = FALSE}
+generated quantities {
+  real expect_pos = 0;
+  int total = 0;
+  for (b in 1:7)
+    for (c in 1:3)
+      for (d in 1:3)
+        for (f in 1:2)
+          for (g in 1:50) {
+        total += P[b, c, d, f, g];
+        expect_pos
+          += P[b, c, d, f, g]
+             * inv_logit(b0 + a_age[b] + a_eth[c] + a_income[d] + a_male[f] + a_state[g]);
+      }
+  real<lower = 0, upper = 1> phi = expect_pos / total;
+}           
+```
+
+## Compare to Population 
 Because we are using simulated data we can see how our poststratified predictions compare to the true population 
-
-```{ echo=FALSE}
-sample_popn_pref <- mean(sample$satisfaction)
-round(sample_popn_pref, 3)
-
-compare2 <- compare2 +
-  geom_hline(yintercept = model_popn_pref[1], colour = '#2ca25f', size = 1) +
-  geom_text(aes(x = 5.2, y = model_popn_pref[1] + .025), label = "MRP", colour = '#2ca25f')
-bayesplot_grid(compare, compare2,
-               grid_args = list(nrow = 1, widths = c(8, 1)))
-```
-
