@@ -1,0 +1,213 @@
+BIBTEX FILES
+
+https://timmastny.rbind.io/blog/multilevel-mrp-tidybayes-brms-stan/  
+@misc{ Mastny17
+       author = "Tim Mastny"
+       title = "MRP Using brms and tidybayes",
+       year = "2017" }
+       
+@misc{mrp using brms and tidybayes | tim mastny_2017, 
+title={MRP Using brms and tidybayes}, 
+url={https://timmastny.rbind.io/blog/multilevel-mrp-tidybayes-brms-stan/}, 
+journal={MRP Using brms and tidybayes | Tim Mastny}, 
+year={2017}, 
+month={Nov}}
+
+
+
+https://timmastny.rbind.io/blog/poststratification-with-dplyr/ 
+@misc{ Mastny17,
+       author = "Tim Mastny",
+       title = "Poststratification Primer with dplyr",
+       year = "2017" }
+       
+@misc{poststratification primer with dplyr | tim mastny_2017, 
+title={Poststratification Primer with dplyr}, 
+url={https://timmastny.rbind.io/blog/poststratification-with-dplyr/}, 
+journal={Poststratification Primer with dplyr | Tim Mastny}, 
+year={2017}, 
+month={Nov}}
+
+ 
+https://cran.r-project.org/web/packages/rstanarm/vignettes/mrp.html
+@misc{ Kennedy_Gabry20,
+       author = "Lauren Kennedy", "Jonah Gabry",
+       title = "MRP with rstanarm",
+       year = "2020" }
+       
+       @misc{kennedy_gabry_2020, 
+       title={MRP with rstanarm}, 
+       url={https://cran.r-project.org/web/packages/rstanarm/vignettes/mrp.html}, 
+       journal={MRP with rstanarm}, 
+       author={Kennedy, Lauren and Gabry, Jonah}, 
+       year={2020}, month={Feb}}
+
+
+
+
+https://github.com/gelman/mrp-stan
+@misc{ Gelman14,
+       author = "Andrew Gelman",
+       title = "gelman/mrp-stan",
+       year = "2014" }
+       
+@misc{gelman_2014, 
+title={gelman/mrp-stan}, 
+url={https://github.com/gelman/mrp-stan}, 
+journal={GitHub}, 
+author={Gelman}, 
+year={2014}, 
+month={Nov}}
+
+
+
+https://www.r-bloggers.com/gelmans-mrp-in-r-what-is-this-all-about/
+@misc{ Gutiérrez17,
+       author = "Gutiérrez, Andrés",
+       title = "Gelman's MrP in R – What is this all about?",
+       year = "2017" }
+       
+@misc{gutiérrez_2017, 
+title={Gelman's MrP in R – What is this all about?}, 
+url={https://www.r-bloggers.com/gelmans-mrp-in-r-what-is-this-all-about/}, 
+journal={R-Bloggers}, 
+author={Gutiérrez, Andrés}, 
+year={2017}, 
+month={Jan}}
+
+
+http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
+@misc{ gelman_lax_phillips_gabry_trangucci_2018,
+       author = "Gelman, Andrew and Lax, Jeffrey and Phillips, Justin and Gabry, Jonah and Trangucci, Robert",
+       title = "Using Multilevel Regression and Poststratification to Estimate Dynamic Public Opinion",
+       year = "2018" }
+       
+@misc{gelman_lax_phillips_gabry_trangucci_2018, 
+title={Using Multilevel Regression and Poststratification to Estimate Dynamic Public Opinion}, 
+url={Using Multilevel Regression and Poststratification to Estimate Dynamic Public Opinion}, journal={stat.columbia.edu}, 
+publisher={Columbia University Department of Statistics}, 
+author={Gelman, Andrew and Lax, Jeffrey and Phillips, Justin and Gabry, Jonah and Trangucci, Robert}, 
+year={2018}, 
+month={Aug}}
+
+
+
+https://github.com/gelman/mrp-stan/blob/master/models/turnout_simple_post.stan
+@misc{ Gelman14,
+       author = "Andrew Gelman",
+       title = "gelman/mrp-stan",
+       year = "2014" }
+
+@misc{gelman_2014, 
+title={gelman/mrp-stan}, 
+url={https://github.com/gelman/mrp-stan/blob/master/models/turnout_simple_post.stan},
+journal={GitHub}, 
+author={Gelman, Andrew}, 
+year={2014}, 
+month={Nov}}
+
+
+ 
+http://www.stat.columbia.edu/~gelman/research/unpublished/modelweighting.pdf
+@misc{ si_trangucci_gabry_gelman_2018,
+       author = "Si, Yajuan and Trangucci, Rob and Gabry, Jonah and Gelman, Andrew",
+       title = "Bayesian hierarchical weighting adjustment and survey inference",
+       year = "2018" }
+
+@misc{si_trangucci_gabry_gelman_2018, 
+title={Bayesian hierarchical weighting adjustment and survey inference}, 
+url={http://www.stat.columbia.edu/~gelman/research/unpublished/}, 
+journal={Andrew Gelman's unpublished papers}, 
+publisher={Columbia University Department of Statistics}, 
+author={Si, Yajuan and Trangucci, Rob and Gabry, Jonah and Gelman, Andrew}, 
+year={2018}, 
+month={Jul}}
+
+
+ 
+https://cran.r-project.org/web/packages/rstanarm/vignettes/pooling.html
+@misc{ carpenter_gabry_goodrich_2020,
+       author = "Carpenter, Bob and Gabry, Jonah and Goodrich, Ben",
+       title = "Hierarchical Partial Pooling for Repeated Binary Trials",
+       year = "2020" }
+
+@misc{carpenter_gabry_goodrich_2020, 
+title={Hierarchical Partial Pooling for Repeated Binary Trials}, 
+url={https://cran.r-project.org/web/packages/rstanarm/vignettes/pooling.html}, 
+journal={Hierarchical Partial Pooling for Repeated Binary Trials}, 
+author={Carpenter, Bob and Gabry, Jonah and Goodrich, Ben}, 
+year={2020}, 
+month={Feb}}
+
+ 
+https://academic.oup.com/aje/article/187/8/1780/4964985
+@article{ Nobody06,
+       author = "Downes, Marnie and Gurrin, Lyle C and English, Dallas R and Pirkis, Jane and Currier, Dianne and Spittal, Matthew J and Carlin, John B",
+       title = "Multilevel Regression and Poststratification: A Modeling Approach to Estimating Population Quantities From Highly Selected Survey Samples",
+       year = "2018" }
+       
+@article{10.1093/aje/kwy070,
+    author = {Downes, Marnie and Gurrin, Lyle C and English, Dallas R and Pirkis, Jane and Currier, Dianne and Spittal, Matthew J and Carlin, John B},
+    title = "{Multilevel Regression and Poststratification: A Modeling Approach to Estimating Population Quantities From Highly Selected Survey Samples}",
+    journal = {American Journal of Epidemiology},
+    volume = {187},
+    number = {8},
+    pages = {1780-1790},
+    year = {2018},
+    month = {04},
+    issn = {0002-9262},
+    doi = {10.1093/aje/kwy070},
+    url = {https://doi.org/10.1093/aje/kwy070},
+    eprint = {https://academic.oup.com/aje/article-pdf/187/8/1780/25369165/kwy070.pdf},
+}
+
+
+
+
+https://github.com/danilofreire/r-scripts/blob/master/stan-logistic-regression.R 
+@misc{ kennedy_gabry_2019,
+       author = "Kennedy, Lauren and Gabry, Jonah",
+       title = "MRP with rstanarm",
+       year = "2019" }
+       
+       
+@misc{kennedy_gabry_2019, 
+title={MRP with rstanarm}, 
+url={http://mc-stan.org/rstanarm/articles/mrp.html}, 
+journal={rstanarm}, 
+author={Kennedy, Lauren and Gabry, Jonah}, 
+year={2019}, 
+month={Aug}}
+
+
+
+
+https://mc-stan.org/docs/2_18/stan-users-guide/hierarchical-logistic-regression.html
+@misc{ Freire15,
+       author = "Danila Freire",
+       title = "Stan Logistic Regression",
+       year = "2015" }
+
+
+@misc{freire_2015, 
+title={Stan Logistic Regression}, 
+url={https://github.com/danilofreire/r-scripts/blob/master/stan-logistic-regression.R},
+journal={GitHub}, 
+author={Freire, Danilo}, 
+year={2015}, 
+month={Jun}}
+
+
+https://mc-stan.org/docs/2_18/stan-users-guide/hierarchical-logistic-regression.html
+
+@manual{ StanGuide,
+       author = "Team, Stan Development",
+       title = "Stan User's Guide" }
+       
+       
+@misc{team, title={Stan User's Guide}, 
+url={https://mc-stan.org/docs/2_22/stan-users-guide/index.html}, 
+journal={Stan}, 
+author={Team, Stan Development}}
+
+
