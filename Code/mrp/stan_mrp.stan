@@ -5,22 +5,25 @@ data {
   int<lower = 1, upper = 3> eth[N];
   int<lower = 1, upper = 2> male[N];
   int<lower = 1, upper = 50> state[N];
-  int<lower = 0> y[N];
+  int<lower = 0> Y[N];
   int<lower = 0> P[7, 3, 3, 2, 50];
 }
 parameters {
-  real alpha;
+  
   real<lower = 0> sigma_beta;
-  vector<multiplier = sigma_beta>[7] beta;
   real<lower = 0> sigma_gamma;
-  vector<multiplier = sigma_gamma>[3] gamma;
   real<lower = 0> sigma_delta;
-  vector<multiplier = sigma_delta>[3] delta;
   real<lower = 0> sigma_omega;
-  vector<multiplier = sigma_omega>[2] omega;
   real<lower = 0> sigma_rho;
-  vector<multiplier = sigma_rho>[50] rho;
   real epsilon;
+  
+  real alpha;
+  vector<multiplier = sigma_beta>[7] beta;
+  vector<multiplier = sigma_gamma>[3] gamma;
+  vector<multiplier = sigma_delta>[3] delta;
+  vector<multiplier = sigma_omega>[2] omega;
+  vector<multiplier = sigma_rho>[50] rho;
+  
 }
 model {
   y ~ bernoulli_logit(alpha + beta[age] + gamma[income] + delta[eth] + omega[male] + rho[state]);
