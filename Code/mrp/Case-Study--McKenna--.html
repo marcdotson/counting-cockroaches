@@ -386,64 +386,60 @@ summary {
 <p>We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells.</p>
 <div id="mckennas-logit-model" class="section level4">
 <h4>McKenna’s logit model</h4>
-<pre class="r"><code>data_list &lt;- list(
-  D &lt;- 5,                                                    # Number of variables. 
-  N &lt;- 1200,                                                 # Number of observations.
-  L &lt;- 6300,                                                 # Number of groups. 
-  y &lt;- sample$service_failure,                               # Outcome variables. 
-  ll &lt;- sample(6300, 1200, replace = TRUE),                  # Group assignment. 
-  x &lt;- matrix(sample %&gt;% 
-                select(male, age, eth, income, state))       # Matrix of predictors. 
-)
+<pre class="r"><code>predictors &lt;- sample %&gt;% 
+  select(male, age, eth, income, state)
 
-D &lt;- 5
-N &lt;- 1200
-L &lt;- 6300
-y &lt;- sample$service_failure
-ll &lt;- sample(6300, 1200, replace = TRUE)</code></pre>
+pred &lt;- as.matrix(predictors, byrow = TRUE)</code></pre>
+<pre class="r"><code>data_list &lt;- list(
+  D = 5,                                              # Number of variables. 
+  N = 1200,                                           # Number of observations.
+  L = 6300,                                           # Number of groups. 
+  y = sample$service_failure,                         # Outcome variables. 
+  ll = sample(6300, 1200, replace = TRUE),            # Group assignment. 
+  x = predictors                                      # Matrix of predictors. 
+)</code></pre>
 <pre class="r"><code>fit &lt;- stan(
   file = here::here(&quot;Code&quot;, &quot;mrp&quot;, &quot;logit_hier.stan&quot;),
   data = &quot;data_list&quot;,
-  seed = 42
+  seed = 42 
 )</code></pre>
 </div>
 <div id="downes-logit-model" class="section level4">
 <h4>Downes logit model</h4>
 <pre class="r"><code># Observations. 
-outcome &lt;- sample$service_failure
-male &lt;- sample$male
-age &lt;- sample$age 
-eth &lt;- sample$eth 
-income &lt;- sample$income
-state &lt;- sample$state
-
-# Number of categories. 
-n &lt;- length(outcome)
-n_male &lt;- max(male)
-n_age &lt;- max(age)
-n_eth &lt;- max(eth)
-n_income &lt;- max(income)
-n_state &lt;- max(state)
+downes_list &lt;- list(
+  outcome = sample$service_failure,
+  male = sample$male,
+  age = sample$age, 
+  eth = sample$eth, 
+  income = sample$income,
+  state = sample$state,
+  n = length(sample$service_failure), 
+  n_male = max(sample$male),
+  n_age = max(sample$age),
+  n_eth = max(sample$eth),
+  n_income = max(sample$income),
+  n_state = max(sample$state)
+)
 
 # Define parameters for Hamiltonian Monte Carlo algorithm
 n_iter &lt;- 1000
 n_chain &lt;- 4
 n_sim &lt;- (n_iter * n_chain)/2 </code></pre>
-<pre class="r"><code>stanfit_final &lt;- stan(file= &quot;downes_copy.stan&quot;,
-                        data=c(&quot;n&quot;,&quot;n_age&quot;,&quot;n_male&quot;,&quot;n_eth&quot;,&quot;n_income&quot;,&quot;n_state&quot;,
-                               &quot;outcome&quot;,&quot;age&quot;,&quot;male&quot;,&quot;eth&quot;,&quot;income&quot;,&quot;state&quot;), 
-                        iter=n_iter, chains=n_chain)</code></pre>
+<pre class="r"><code>stanfit_final &lt;- stan(file = &quot;downes_copy.stan&quot;,
+                        data = downes_list, 
+                        iter = n_iter, chains = n_chain)</code></pre>
 </div>
 <div id="stan-user-guide-logit-model" class="section level4">
 <h4>Stan user guide logit model</h4>
 <pre class="r"><code>stan_data &lt;- list( 
-  age &lt;- sample$age, 
-  eth &lt;- sample$eth, 
-  income &lt;- sample$income, 
-  male &lt;- sample$male, 
-  state &lt;- sample$state, 
-  Y &lt;- sample$service_failure, 
-  N &lt;- length(Y))</code></pre>
+  age = sample$age, 
+  eth = sample$eth, 
+  income = sample$income, 
+  male = sample$male, 
+  state = sample$state, 
+  Y = sample$service_failure, 
+  N = length(sample$service_failure))</code></pre>
 <pre class="r"><code>stanfit_final &lt;- stan(file= &quot;stan_mrp.stan&quot;,
                         data= &quot;stan_data&quot;, 
                         iter=n_iter, chains=n_chain)</code></pre>

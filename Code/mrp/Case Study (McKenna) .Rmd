@@ -154,51 +154,50 @@ This case study will use generated data. The data is broken up into three data t
 First we will build a model to predict the our outcome for each cell. Then we will use the postratification table to correctly weight each cell to predict outcome for the whole population. 
 
 We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells. 
- 
+
 #### McKenna's logit model  
 ```{r}
+predictors <- sample %>% 
+  select(male, age, eth, income, state)
+
+pred <- as.matrix(predictors, byrow = TRUE)
+```
+
+```{r}
 data_list <- list(
-  D <- 5,                                                    # Number of variables. 
-  N <- 1200,                                                 # Number of observations.
-  L <- 6300,                                                 # Number of groups. 
-  y <- sample$service_failure,                               # Outcome variables. 
-  ll <- sample(6300, 1200, replace = TRUE),                  # Group assignment. 
-  x <- matrix(sample %>% 
-                select(male, age, eth, income, state))       # Matrix of predictors. 
+  D = 5,                                              # Number of variables. 
+  N = 1200,                                           # Number of observations.
+  L = 6300,                                           # Number of groups. 
+  y = sample$service_failure,                         # Outcome variables. 
+  ll = sample(6300, 1200, replace = TRUE),            # Group assignment. 
+  x = predictors                                      # Matrix of predictors. 
 )
-
-D <- 5
-N <- 1200
-L <- 6300
-y <- sample$service_failure
-ll <- sample(6300, 1200, replace = TRUE)
-
 ```
 
 ```{r, eval = FALSE}
 fit <- stan(
   file = here::here("Code", "mrp", "logit_hier.stan"),
   data = "data_list",
-  seed = 42
+  seed = 42 
 )
 ```
 #### Downes logit model 
 ```{r}
 # Observations. 
-outcome <- sample$service_failure
-male <- sample$male
-age <- sample$age 
-eth <- sample$eth 
-income <- sample$income
-state <- sample$state
-
-# Number of categories. 
-n <- length(outcome)
-n_male <- max(male)
-n_age <- max(age)
-n_eth <- max(eth)
-n_income <- max(income)
-n_state <- max(state)
+downes_list <- list(
+  outcome = sample$service_failure,
+  male = sample$male,
+  age = sample$age, 
+  eth = sample$eth, 
+  income = sample$income,
+  state = sample$state,
+  n = length(sample$service_failure), 
+  n_male = max(sample$male),
+  n_age = max(sample$age),
+  n_eth = max(sample$eth),
+  n_income = max(sample$income),
+  n_state = max(sample$state)
+)
 
 # Define parameters for Hamiltonian Monte Carlo algorithm
 n_iter <- 1000
@@ -209,21 +208,20 @@ n_sim <- (n_iter * n_chain)/2
 ```
 
 ```{r, eval = FALSE}
-stanfit_final <- stan(file= "downes_copy.stan",
-                        data=c("n","n_age","n_male","n_eth","n_income","n_state",
-                               "outcome","age","male","eth","income","state"), 
-                        iter=n_iter, chains=n_chain)
+stanfit_final <- stan(file = "downes_copy.stan",
+                        data = downes_list, 
+                        iter = n_iter, chains = n_chain)
 ```
 #### Stan user guide logit model 
 ```{r}
 stan_data <- list( 
-  age <- sample$age, 
-  eth <- sample$eth, 
-  income <- sample$income, 
-  male <- sample$male, 
-  state <- sample$state, 
-  Y <- sample$service_failure, 
-  N <- length(Y))
+  age = sample$age, 
+  eth = sample$eth, 
+  income = sample$income, 
+  male = sample$male, 
+  state = sample$state, 
+  Y = sample$service_failure, 
+  N = length(sample$service_failure))
 ```
 
 ```{r, eval = FALSE}

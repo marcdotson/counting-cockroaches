@@ -14,7 +14,6 @@ data {
   int<lower=0,upper=n_income> income[n];                    // poststratification factor in the 
   int<lower=0,upper=n_male> male[n];                      // final model
   int<lower=0,upper=n_state> state[n];      
-  int<lower = 0> P[7, 3, 3, 2, 50];
  }
 parameters {                                            // Model parameters to be estimated:
   real b0;                                              // "intercept"
@@ -32,8 +31,7 @@ parameters {                                            // Model parameters to b
 transformed parameters {                                // Model specification is here
   vector[n] outcome_hat;
   for (i in 1:n)
-    outcome_hat[i] <- b0 +
-                           a_age[age[i]] + 
+    outcome_hat[i] = b0 + a_age[age[i]] + 
                            a_eth[eth[i]] +
                            a_income[income[i]] +
                            a_male[male[i]] +
@@ -61,18 +59,4 @@ model {                                                 // Model distributions f
                                                         // Note the prior distributions for 
                                                         // unmodelled parameters will change.
 }
-generated quantities {
-  real expect_pos = 0;
-  int total = 0;
-  for (b in 1:7)
-    for (c in 1:3)
-      for (d in 1:3)
-        for (f in 1:2)
-          for (g in 1:50) {
-        total += P[b, c, d, f, g];
-        expect_pos
-          += P[b, c, d, f, g]
-             * inv_logit(b0 + a_age[b] + a_eth[c] + a_income[d] + a_male[f] + a_state[g]);
-      }
-  real<lower = 0, upper = 1> phi = expect_pos / total;
-}           
+          
