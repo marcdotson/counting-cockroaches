@@ -386,17 +386,25 @@ summary {
 <p>We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells.</p>
 <div id="mckennas-logit-model" class="section level4">
 <h4>McKenna’s logit model</h4>
+<ul>
+<li>The issue here is the way that the matrix of predictors is being specified, I think</li>
+</ul>
 <pre class="r"><code>predictors &lt;- sample %&gt;% 
   select(male, age, eth, income, state)
 
-pred &lt;- as.matrix(predictors, byrow = TRUE)</code></pre>
+pred &lt;- as.matrix(predictors)
+
+# pred &lt;- list()
+# for (n in 1:nrow(predictors)) {
+#   pred[[n]] &lt;- matrix(as.numeric(predictors[n,]))
+# }</code></pre>
 <pre class="r"><code>data_list &lt;- list(
   D = 5,                                              # Number of variables. 
   N = 1200,                                           # Number of observations.
-  L = 6300,                                           # Number of groups. 
+  L = 5,                                              # Number of groups. 
   y = sample$service_failure,                         # Outcome variables. 
-  ll = sample(6300, 1200, replace = TRUE),            # Group assignment. 
-  x = predictors                                      # Matrix of predictors. 
+  ll = sample(5, 1200, replace = TRUE),               # Group assignment. 
+  x = pred                                            # Matrix of predictors. 
 )</code></pre>
 <pre class="r"><code>fit &lt;- stan(
   file = here::here(&quot;Code&quot;, &quot;mrp&quot;, &quot;logit_hier.stan&quot;),
@@ -428,7 +436,7 @@ n_chain &lt;- 4
 n_sim &lt;- (n_iter * n_chain)/2 </code></pre>
 <pre class="r"><code>stanfit_final &lt;- stan(file = &quot;downes_copy.stan&quot;,
                         data = downes_list, 
-                        iter = n_iter, chains = n_chain)</code></pre>
+                        iter = n_iter, chains = 1)</code></pre>
 </div>
 <div id="stan-user-guide-logit-model" class="section level4">
 <h4>Stan user guide logit model</h4>
@@ -439,7 +447,8 @@ n_sim &lt;- (n_iter * n_chain)/2 </code></pre>
   male = sample$male, 
   state = sample$state, 
   Y = sample$service_failure, 
-  N = length(sample$service_failure))</code></pre>
+  N = length(sample$service_failure)
+  )</code></pre>
 <pre class="r"><code>stanfit_final &lt;- stan(file= &quot;stan_mrp.stan&quot;,
                         data= &quot;stan_data&quot;, 
                         iter=n_iter, chains=n_chain)</code></pre>

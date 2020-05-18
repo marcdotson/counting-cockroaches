@@ -156,21 +156,27 @@ First we will build a model to predict the our outcome for each cell. Then we wi
 We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells. 
 
 #### McKenna's logit model  
+- The issue here is the way that the matrix of predictors is being specified, I think 
 ```{r}
 predictors <- sample %>% 
   select(male, age, eth, income, state)
 
-pred <- as.matrix(predictors, byrow = TRUE)
+pred <- as.matrix(predictors)
+
+# pred <- list()
+# for (n in 1:nrow(predictors)) {
+#   pred[[n]] <- matrix(as.numeric(predictors[n,]))
+# }
 ```
 
 ```{r}
 data_list <- list(
   D = 5,                                              # Number of variables. 
   N = 1200,                                           # Number of observations.
-  L = 6300,                                           # Number of groups. 
+  L = 5,                                              # Number of groups. 
   y = sample$service_failure,                         # Outcome variables. 
-  ll = sample(6300, 1200, replace = TRUE),            # Group assignment. 
-  x = predictors                                      # Matrix of predictors. 
+  ll = sample(5, 1200, replace = TRUE),               # Group assignment. 
+  x = pred                                            # Matrix of predictors. 
 )
 ```
 
@@ -210,7 +216,7 @@ n_sim <- (n_iter * n_chain)/2
 ```{r, eval = FALSE}
 stanfit_final <- stan(file = "downes_copy.stan",
                         data = downes_list, 
-                        iter = n_iter, chains = n_chain)
+                        iter = n_iter, chains = 1)
 ```
 #### Stan user guide logit model 
 ```{r}
@@ -221,7 +227,8 @@ stan_data <- list(
   male = sample$male, 
   state = sample$state, 
   Y = sample$service_failure, 
-  N = length(sample$service_failure))
+  N = length(sample$service_failure)
+  )
 ```
 
 ```{r, eval = FALSE}

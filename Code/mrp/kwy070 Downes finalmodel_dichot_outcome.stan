@@ -36,7 +36,7 @@ parameters {                                            // Model parameters to b
 transformed parameters {                                // Model specification is here
   vector[n] outcome_hat;
   for (i in 1:n)
-    outcome_hat[i] <- b0 + b_age5p* age5p[i] + 
+    outcome_hat[i] = b0 + b_age5p* age5p[i] + 
                            b_ingp * ingp[i] +
                            b_ieo * ieo[i] +
                            a_age5p[age5p[i]] + 
@@ -70,3 +70,4 @@ model {                                                 // Model distributions f
                                                         // Note the prior distributions for 
                                                         // unmodelled parameters will change.
 }
+
