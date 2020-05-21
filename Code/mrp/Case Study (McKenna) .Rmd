@@ -2,7 +2,7 @@
 title: "Case Study (McKenna)"
 author: "McKenna Weech"
 date: "3/10/2020"
-output: html_document
+output: github_document
 ---
 
 ## Intro 
