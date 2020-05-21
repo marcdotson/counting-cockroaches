@@ -142,7 +142,7 @@ simulate_mrp_data <- function(n) {
 
 ```{r, message = FALSE, echo = FALSE}
 
-# Import data. 
+# Importing the data. 
 sample <- read_csv(here::here("code", "mrp", "data", "sample.csv"))
 proststrat <- read_csv(here::here("code", "mrp", "data", "poststrat.csv"))
 true_popn <- read_csv(here::here("code", "mrp", "data", "true_popn.csv"))
