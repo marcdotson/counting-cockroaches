@@ -29,10 +29,10 @@ library(tidyr)
 library(tidybayes)
 library(here)
 
-options(mc.cores = parallel::detectCores()) # Set Stan to use all availible cores
-rstan_options(auto_write = TRUE) # Don't recompile Stan code that hasn't changed
+options(mc.cores = parallel::detectCores()) # Set Stan to use all available cores.
+rstan_options(auto_write = TRUE)            # Don't recompile Stan code that hasn't changed.
 
-# Data generating function for referance. 
+# Data generating function for reference. 
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
@@ -133,57 +133,45 @@ simulate_mrp_data <- function(n) {
     true_popn = true_popn
   )
 }
-```
-
-
-```{r, message = FALSE, echo = FALSE}
 
 # Importing the data. 
 sample <- read_csv(here::here("code", "mrp", "data", "sample.csv"))
 proststrat <- read_csv(here::here("code", "mrp", "data", "poststrat.csv"))
 true_popn <- read_csv(here::here("code", "mrp", "data", "true_popn.csv"))
-
 ```
 
-This case study will use generated data. The data is broken up into three data tables: sample, postratification, and population. The postratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
+This case study will use generated data. The data is broken up into three data tables: sample, post-stratification, and population. The post-stratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
 
-First we will build a model to predict the our outcome for each cell. Then we will use the postratification table to correctly weight each cell to predict outcome for the whole population. 
+First we will build a model to predict the our outcome for each cell. Then we will use the post-stratification table to correctly weight each cell to predict outcome for the whole population. 
 
-We will use bayesian hierchical modeling to take advantage of partical pooling to account for empty cells. 
+We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for empty cells. 
 
-#### McKenna's logit model  
-- The issue here is the way that the matrix of predictors is being specified, I think 
+### McKenna's logit model
+
 ```{r}
 predictors <- sample %>% 
   select(male, age, eth, income, state)
 
-pred <- as.matrix(predictors)
-
-# pred <- list()
-# for (n in 1:nrow(predictors)) {
-#   pred[[n]] <- matrix(as.numeric(predictors[n,]))
-# }
-```
-
-```{r}
 data_list <- list(
   D = 5,                                              # Number of variables. 
   N = 1200,                                           # Number of observations.
   L = 5,                                              # Number of groups. 
   y = sample$service_failure,                         # Outcome variables. 
   ll = sample(5, 1200, replace = TRUE),               # Group assignment. 
-  x = pred                                            # Matrix of predictors. 
+  x = predictors                                      # Matrix of predictors. 
 )
 ```
 
 ```{r, eval = FALSE}
 fit <- stan(
   file = here::here("Code", "mrp", "logit_hier.stan"),
-  data = "data_list",
+  data = data_list,
   seed = 42 
 )
 ```
+
 #### Downes logit model 
+
 ```{r}
 # Observations. 
 downes_list <- list(
