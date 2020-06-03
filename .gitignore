@@ -12,6 +12,7 @@ Temporary/*
 # Miscellaneous
 .DS_Store
 
-# Large data files and model outputs
+# Folder-Specific
 Code/complaint-prediction/data/*
 Code/complaint-prediction/models/*
+Code/mrp/*.rds
