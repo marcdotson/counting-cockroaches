@@ -220,12 +220,12 @@ fit <- stan(
 )
 ```
 
-## Postratification 
+## Post-Stratification 
 
-Postratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people
+Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people
 
 $$\omega=\displaystyle\frac{$$\sum_{j=1}^{J}\beta_{j}*N_{j}$$}{$$\sum_{j=1}^{J}N_{j}$$}$$
-Postratification can be performed in stan using the generated quantities block.
+Post-stratification can be performed in stan using the generated quantities block.
 
 ```{r, eval = FALSE}
 generated quantities {
@@ -246,4 +246,5 @@ generated quantities {
 ```
 
 ## Compare to Population 
-Because we are using simulated data we can see how our poststratified predictions compare to the true population 
+
+Because we are using simulated data we can see how our poststratified predictions compare to the true population.
