@@ -176,33 +176,30 @@ fit <- stan(
 # Observations. 
 downes_list <- list(
   outcome = sample$service_failure,
-  male = sample$male,
+  male = sample$male + 1,
   age = sample$age, 
   eth = sample$eth, 
   income = sample$income,
   state = sample$state,
   n = length(sample$service_failure), 
-  n_male = max(sample$male),
+  n_male = max(sample$male) + 1,
   n_age = max(sample$age),
   n_eth = max(sample$eth),
   n_income = max(sample$income),
   n_state = max(sample$state)
 )
-
-# Define parameters for Hamiltonian Monte Carlo algorithm
-n_iter <- 1000
-n_chain <- 4
-n_sim <- (n_iter * n_chain)/2 
-
-
 ```
 
 ```{r, eval = FALSE}
-stanfit_final <- stan(file = "downes_copy.stan",
-                        data = downes_list, 
-                        iter = n_iter, chains = 1)
+fit <- stan(
+  file = here::here("Code", "mrp", "downes_copy.stan"),
+  data = downes_list,
+  seed = 42 
+)
 ```
+
 #### Stan user guide logit model 
+
 ```{r}
 stan_data <- list( 
   age = sample$age, 

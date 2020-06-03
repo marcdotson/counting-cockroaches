@@ -30,12 +30,9 @@ parameters {                                            // Model parameters to b
 }
 transformed parameters {                                // Model specification is here
   vector[n] outcome_hat;
-  for (i in 1:n)
-    outcome_hat[i] = b0 + a_age[age[i]] + 
-                           a_eth[eth[i]] +
-                           a_income[income[i]] +
-                           a_male[male[i]] +
-                           a_state[state[i]];
+  for (i in 1:n) {
+    outcome_hat[i] = b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]];
+  }
 }
 model {                                                 // Model distributions for varying coefficients
   b0 ~ cauchy(0,2.5);                                   // and prior distributions for unmodelled                            // Can modify Cauchy scale parameter
