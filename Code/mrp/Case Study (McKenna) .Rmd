@@ -209,13 +209,15 @@ stan_data <- list(
   state = sample$state, 
   Y = sample$service_failure, 
   N = length(sample$service_failure)
-  )
+)
 ```
 
 ```{r, eval = FALSE}
-stanfit_final <- stan(file= "stan_mrp.stan",
-                        data= "stan_data", 
-                        iter=n_iter, chains=n_chain)
+fit <- stan(
+  file = here::here("Code", "mrp", "stan_mrp.stan"),
+  data = stan_data,
+  seed = 42 
+)
 ```
 
 ## Postratification 
