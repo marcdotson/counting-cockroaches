@@ -5,7 +5,7 @@ date: "3/10/2020"
 output: github_document
 ---
 
-Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge sample are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population. Multilevel regression and poststratification (Gelman & Little, 1997) proceeds by fitting a hierarchical regression model to survey data, and then using the population size of each poststratification cell to construct weighted survey estimates. The accuracy of poststratification within MRP can be dependent on whehter the matrix that is used in poststratification is an accurate representation of the target population. This combination of MRP and postsrtatification has been seen as an effective method when adjusting a sample to be more representative of a population for specific variables.
+Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge samples are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population. Multilevel regression and poststratification (Gelman & Little, 1997) proceeds by fitting a hierarchical regression model to survey data, and then using the population size of each poststratification cell to construct weighted survey estimates. The accuracy of poststratification within MRP can be dependent on whehter the matrix that is used in poststratification is an accurate representation of the target population. This combination of MRP and postsrtatification has been seen as an effective method when adjusting a sample to be more representative of a population for specific variables.
 
 ## Data 
 
@@ -139,14 +139,14 @@ simulate_mrp_data <- function(n) {
 }
 
 # Importing the data. 
-sample <- read_csv(here::here("code", "mrp", "data", "sample.csv"))
-proststrat <- read_csv(here::here("code", "mrp", "data", "poststrat.csv"))
-true_popn <- read_csv(here::here("code", "mrp", "data", "true_popn.csv"))
+sample <- read_csv(here::here("data", "sample.csv"))
+proststrat <- read_csv(here::here( "data", "poststrat.csv"))
+true_popn <- read_csv(here::here( "data", "true_popn.csv"))
 ```
 
 This case study will use generated data. The data is broken up into three data tables: sample, post-stratification, and population. The post-stratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
 
-First we will build a model to predict the our outcome for each cell. Then we will use the post-stratification table to correctly weight each cell to predict outcome for the whole population. 
+First we will build a model to generate parameter estimates for each cell. Then we will use the post-stratification table to correctly weight the estimates for the whole population. 
 
 We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for empty cells. 
 
