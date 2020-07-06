@@ -13,7 +13,7 @@ Categorical classification variables are chosen and cell are assigned baised off
 
 In this case study there are five classification variables choosen: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
 
-Data is generated using a function from...(find reference).
+Data is generated using a function used in case study (noted in references)
 
 ## Model 
 
@@ -35,7 +35,8 @@ rstan_options(auto_write = TRUE)            # Don't recompile Stan code that has
 # Data generating function for reference. 
 simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
-  poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) # Columns of post-strat matrix, plus one for size
+  poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) 
+  # Columns of post-strat matrix, plus one for size
   colnames(poststrat) <- c("male", "eth", "age","income", "state",'N')
   count <- 0
   for (i1 in 1:J[1]){

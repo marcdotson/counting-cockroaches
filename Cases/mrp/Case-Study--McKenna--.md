@@ -5,47 +5,38 @@ McKenna Weech
 
 ## Intro
 
-Multi-level regression and post-stratification helps to infer treatment
-size for a whole population from a non-representative sample. Using
-population knowlege sample are classified into cells baised off of
-choosen classification variables. Heirarchical bayesian models are used
-to infer(?) treatment within cells and population knowlege is used to
-weight each cell according to their prevelance within the total
-population.
+Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge sample are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population. Multilevel regression and post-stratification (Gelman & Little, 1997) proceeds by fitting a hierarchical regression model to survey data, and then using the population size of each post-stratification cell to construct weighted survey estimates. The accuracy of post-stratification within MRP can be dependent on whether the matrix that is used in post-stratification is an accurate representation of the target population. This combination of MRP and post-stratification has been seen as an effective method when adjusting a sample to be more representative of a population for specific variables.
 
 ## Data
 
-Categorical classification variables are choosen and cell are assigned
-baised off of category classification. For example, if one variable is
-gender consisting of two categories (male and other) and one varibale is
-age consisting of two categories (0-50 and 50-100) then there would be
-four cells: male 0-50, male 50-100, other 0-50, and other 50-100.
+Categorical classification variables are chosen and cell are assigned based off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one variable is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100. 
 
-In this case study there are five classification variables choosen: age,
-income, ethnicity, gender, and state. Each variable is tranforemed into
-categorical variables with age having seven categories, income having
-three, ethnicity having three, gender having two, and state have 50
-making the total number of cells 6,300 (7 x 3 x 3 x 2 x 50 = 6300).
+In this case study there are five classification variables chosen: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
 
-Data is generated using a function from…(find referance)
+Data is generated using a function used in case study (noted in references)
 
 ## Model
 
 This case study will use generated data. The data is broken up into
-three data tables: sample, postratification, and population. The
-postratification table shows the population density of each cell and is
+three data tables: sample, post-stratification, and population. The
+post-stratification table shows the population density of each cell and is
 used to weight the outcome results from the sample. Because the data is
 generated we also have a generated population that we can use to check
 the accuracy of the model.
 
 First we will build a model to predict the our outcome for each cell.
-Then we will use the postratification table to correctly weight each
+Then we will use the post-stratification table to correctly weight each
 cell to predict outcome for the whole population.
 
-We will use bayesian hierchical modeling to take advantage of partical
+We will use Bayesian Hierarchical modeling to take advantage of partial
 pooling to account for empty cells.
 
 #### McKenna’s logit model
+This case study will use generated data. The data is broken up into three data tables: sample, post-stratification, and population. The post-stratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
+
+First we will build a model to predict the our outcome for each cell. Then we will use the post-stratification table to correctly weight each cell to predict outcome for the whole population. 
+
+We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for empty cells. 
 
   - The issue here is the way that the matrix of predictors is being
     specified, I think
@@ -136,13 +127,10 @@ stanfit_final <- stan(file= "stan_mrp.stan",
 
 ## Postratification
 
-Postratification consists of taking the sum of the estimates of the
-model for each cell times the number of people in each cell divided by
-the total number of
-people
+Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people. Using post-stratification can improve accuracy of the estimates based on the information known.
 
 \[\omega=\displaystyle\frac{\]*{j=1}^{J}*{j}\*N\_{j}\[}{\]*{j=1}^{J}N*{j}\[}\]
-Postratification can be performed in stan using the generated quantities
+Post-stratification can be performed in stan using the generated quantities
 block.
 
 ``` r
@@ -165,5 +153,5 @@ generated quantities {
 
 ## Compare to Population
 
-Because we are using simulated data we can see how our poststratified
+Because we are using simulated data we can see how our post-stratified
 predictions compare to the true population
