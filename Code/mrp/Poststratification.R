@@ -1,5 +1,7 @@
 library(tidyverse)
 
+# This is just reference for simple postratification 
+
 # Generate data not in stan. 
 mu_1 <- 5
 sigma_1 <- 1
