@@ -5,19 +5,19 @@ date: "3/10/2020"
 output: github_document
 ---
 
-Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge samples are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population. Multilevel regression and poststratification (Gelman & Little, 1997) proceeds by fitting a hierarchical regression model to survey data, and then using the population size of each poststratification cell to construct weighted survey estimates. The accuracy of poststratification within MRP can be dependent on whehter the matrix that is used in poststratification is an accurate representation of the target population. This combination of MRP and postsrtatification has been seen as an effective method when adjusting a sample to be more representative of a population for specific variables.
+Multilevel regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge, samples are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population. Multilevel regression and post-stratification (Gelman & Little, 1997) proceeds by fitting a hierarchical regression model to survey data, and then using the population size of each post-stratification cell to construct weighted survey estimates. The accuracy of post-stratification within MRP can be dependent on whether the matrix that is used in post-stratification is an accurate representation of the target population. This combination of multilevel regression and post-stratification has been seen as an effective method when adjusting a sample to be more representative of a population for specific variables.
 
 ## Data 
 
-Categorical classification variables are chosen and cell are assigned baised off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one variable is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100. 
+Categorical classification variables are chosen and cells are assigned based off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one variable is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100.
 
-In this case study there are five classification variables choosen: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
+In this case study there are five classification variables: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300 (7 x 3 x 3 x 2 x 50 = 6300). 
 
-Data is generated using a function used in case study (noted in references)
+Data is generated using a function used in case study (noted in references).
 
-## Model 
+## Model
 
-```{r message = FALSE, echo = FALSE}
+```{r load-data, message=FALSE}
 library(tidyverse) #Load packages
 library(rstan)
 library(rstanarm)
@@ -144,13 +144,21 @@ proststrat <- read_csv(here::here( "data", "poststrat.csv"))
 true_popn <- read_csv(here::here( "data", "true_popn.csv"))
 ```
 
-This case study will use generated data. The data is broken up into three data tables: sample, post-stratification, and population. The post-stratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model. 
+This case study will use generated data. The data is broken up into three data tables: sample, post-stratification, and population. The post-stratification table shows the population density of each cell and is used to weight the outcome results from the sample. Because the data is generated we also have a generated population that we can use to check the accuracy of the model.
 
 First we will build a model to generate parameter estimates for each cell. Then we will use the post-stratification table to correctly weight the estimates for the whole population. 
 
-We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for empty cells. 
+We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for underweighted cells.
 
 ### McKenna's logit model
+
+BEFORE FITTING logit_hier.stan INCLUDE IT HERE AND EXPLAIN THE MODEL...
+
+```{stan logit-hier, output.var="logit_hier", eval=FALSE}
+
+```
+
+...THEN YOU CAN FIT.
 
 ```{r}
 predictors <- sample %>% 
@@ -174,7 +182,15 @@ fit <- stan(
 )
 ```
 
-#### Downes logit model 
+### Downes logit model 
+
+BEFORE FITTING downes_copy.stan INCLUDE IT HERE AND EXPLAIN THE MODEL...
+
+```{stan downes, output.var="downes", eval=FALSE}
+
+```
+
+...THEN YOU CAN FIT.
 
 ```{r}
 # Observations. 
@@ -202,7 +218,15 @@ fit <- stan(
 )
 ```
 
-#### Stan user guide logit model 
+### Stan user guide logit model 
+
+BEFORE FITTING stan_mrp.stan INCLUDE IT HERE AND EXPLAIN THE MODEL...
+
+```{stan stan-mrp, output.var="stan_mrp", eval=FALSE}
+
+```
+
+...THEN YOU CAN FIT.
 
 ```{r}
 stan_data <- list( 
@@ -224,11 +248,22 @@ fit <- stan(
 )
 ```
 
-## Post-Stratification 
+## Post-Stratification
 
-Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people. Using poststratificationcan immprove accracy of the estimates based on the information known.
+Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people. Using post-stratificatio ncan improve accuracy of the estimates based on the information known.
+
+IF YOU NEED TO INCLUDE THIS, WE WILL NEED SOMETHING IN THE YAML TO GET THIS WORK FOR A GITHUB_DOCUMENT (MARC WILL FIGURE THAT OUT). AN ALTERNATIVE IS TO EXPRESS AS CODE INSTEAD OF MATH.
+
+THIS...
 
 $$\omega=\displaystyle\frac{$$\sum_{j=1}^{J}\beta_{j}*N_{j}$$}{$$\sum_{j=1}^{J}N_{j}$$}$$
+
+OR...
+
+```
+something / something
+```
+
 Post-stratification can be performed in stan using the generated quantities block.
 
 ```{r, eval = FALSE}
@@ -251,4 +286,4 @@ generated quantities {
 
 ## Compare to Population 
 
-Because we are using simulated data we can see how our poststratified predictions compare to the true population.
+Because we are using simulated data we can see how our post-stratified predictions compare to the true population.
