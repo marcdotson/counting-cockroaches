@@ -3,40 +3,168 @@ Case Study (McKenna)
 McKenna Weech, Hannah Thompson
 3/10/2020
 
-Multi-level regression and post-stratification helps to infer treatment
+Multilevel regression and post-stratification helps to infer treatment
 size for a whole population from a non-representative sample. Using
-population knowledge samples are classified into cells based off of
+population knowledge, samples are classified into cells based off of
 chosen classification variables. Hierarchical Bayesian models are used
-to infer(?) treatment within cells and population knowledge is used to
+to infer treatment within cells and population knowledge is used to
 weight each cell according to their prevalence within the total
-population. Multilevel regression and poststratification (Gelman &
+population. Multilevel regression and post-stratification (Gelman &
 Little, 1997) proceeds by fitting a hierarchical regression model to
 survey data, and then using the population size of each
-poststratification cell to construct weighted survey estimates. The
-accuracy of poststratification within MRP can be dependent on whehter
-the matrix that is used in poststratification is an accurate
-representation of the target population. This combination of MRP and
-postsrtatification has been seen as an effective method when adjusting a
-sample to be more representative of a population for specific variables.
+post-stratification cell to construct weighted survey estimates. The
+accuracy of post-stratification within MRP can be dependent on whether
+the matrix that is used in post-stratification is an accurate
+representation of the target population. This combination of multilevel
+regression and post-stratification has been seen as an effective method
+when adjusting a sample to be more representative of a population for
+specific variables.
 
 ## Data
 
-Categorical classification variables are chosen and cell are assigned
-baised off of category classification. For example, if one variable is
+Categorical classification variables are chosen and cells are assigned
+based off of category classification. For example, if one variable is
 gender consisting of two categories (male and other) and one variable is
 age consisting of two categories (0-50 and 50-100) then there would be
 four cells: male 0-50, male 50-100, other 0-50, and other 50-100.
 
-In this case study there are five classification variables choosen: age,
-income, ethnicity, gender, and state. Each variable is transformed into
+In this case study there are five classification variables: age, income,
+ethnicity, gender, and state. Each variable is transformed into
 categorical variables with age having seven categories, income having
 three, ethnicity having three, gender having two, and state have 50
 making the total number of cells 6,300 (7 x 3 x 3 x 2 x 50 = 6300).
 
 Data is generated using a function used in case study (noted in
-references)
+references).
 
 ## Model
+
+``` r
+library(tidyverse) #Load packages
+library(rstan)
+library(rstanarm)
+library(ggplot2)
+library(bayesplot)
+theme_set(bayesplot::theme_default())
+library(dplyr)
+library(tidyr)
+library(tidybayes)
+library(here)
+
+options(mc.cores = parallel::detectCores()) # Set Stan to use all available cores.
+rstan_options(auto_write = TRUE)            # Don't recompile Stan code that hasn't changed.
+
+# Data generating function for reference. 
+simulate_mrp_data <- function(n) {
+  J <- c(2, 3, 7, 3, 50) # male or not, eth, age, income level, state
+  poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) 
+  # Columns of post-strat matrix, plus one for size
+  colnames(poststrat) <- c("male", "eth", "age","income", "state",'N')
+  count <- 0
+  for (i1 in 1:J[1]){
+    for (i2 in 1:J[2]){
+      for (i3 in 1:J[3]){
+        for (i4 in 1:J[4]){
+          for (i5 in 1:J[5]){
+              count <- count + 1
+              # Fill them in so we know what category we are referring to
+              poststrat[count, 1:5] <- c(i1-1, i2, i3, i4, i5)
+          }
+        }
+      }
+    }
+  }
+  # Proportion in each sample in the population
+  p_male <- c(0.52, 0.48)
+  p_eth <- c(0.5, 0.2, 0.3)
+  p_age <- c(0.2,.1,0.2,0.2, 0.10, 0.1, 0.1)
+  p_income<-c(.50,.35,.15)
+  p_state_tmp<-runif(50,10,20)
+  p_state<-p_state_tmp/sum(p_state_tmp)
+  poststrat$N<-0
+  for (j in 1:prod(J)){
+    poststrat$N[j] <- round(250e6 * p_male[poststrat[j,1]+1] * p_eth[poststrat[j,2]] *
+      p_age[poststrat[j,3]]*p_income[poststrat[j,4]]*p_state[poststrat[j,5]]) 
+    
+#Adjust the N to be the number observed in each category in each group
+  }
+
+# Now let's adjust for the probability of response
+  
+  p_response_baseline <- 0.01
+  p_response_male <- c(2, 0.8) / 2.8
+  p_response_eth <- c(1, 1.2, 2.5) / 4.7
+  p_response_age <- c(1, 0.4, 1, 1.5,  3, 5, 7) / 18.9
+  p_response_inc <- c(1, 0.9, 0.8) / 2.7
+  p_response_state <- rbeta(50, 1, 1)
+  p_response_state <- p_response_state / sum(p_response_state)
+  p_response <- rep(NA, prod(J))
+  for (j in 1:prod(J)) {
+    p_response[j] <-
+      p_response_baseline * p_response_male[poststrat[j, 1] + 1] *
+      p_response_eth[poststrat[j, 2]] * p_response_age[poststrat[j, 3]] *
+      p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
+  }
+  people <- sample(prod(J), n, replace = TRUE, prob = poststrat$N * p_response)
+
+  ## For respondent i, people[i] is that person's poststrat cell,
+  ## some number between 1 and 32
+  n_cell <- rep(NA, prod(J))
+  for (j in 1:prod(J)) {
+    n_cell[j] <- sum(people == j)
+  }
+
+  coef_male <- c(0,-0.3)
+  coef_eth <- c(0, 0.6, 0.9)
+  coef_age <- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
+  coef_income <- c(0,-0.2, 0.6)
+  coef_state <- c(0, round(rnorm(49, 0, 1), 1))
+  coef_age_male <- t(cbind(c(0, .1, .23, .3, .43, .5, .6),
+                           c(0, -.1, -.23, -.5, -.43, -.5, -.6)))
+  true_popn <- data.frame(poststrat[, 1:5], service_failure = rep(NA, prod(J)))
+  for (j in 1:prod(J)) {
+    true_popn$satisfaction[j] <- plogis(
+      coef_male[poststrat[j, 1] + 1] +
+        coef_eth[poststrat[j, 2]] + coef_age[poststrat[j, 3]] +
+        coef_income[poststrat[j, 4]] + coef_state[poststrat[j, 5]] +
+        coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
+      )
+  }
+
+#male or not, eth, age, income level, state, city
+  y <- rbinom(n, 1, true_popn$satisfaction[people])
+  male <- poststrat[people, 1]
+  eth <- poststrat[people, 2]
+  age <- poststrat[people, 3]
+  income <- poststrat[people, 4]
+  state <- poststrat[people, 5]
+
+  sample <- data.frame(service_failure = y,
+                       male, age, eth, income, state,
+                       id = 1:length(people))
+
+  #Make all numeric:
+  for (i in 1:ncol(poststrat)) {
+    poststrat[, i] <- as.numeric(poststrat[, i])
+  }
+  for (i in 1:ncol(true_popn)) {
+    true_popn[, i] <- as.numeric(true_popn[, i])
+  }
+  for (i in 1:ncol(sample)) {
+    sample[, i] <- as.numeric(sample[, i])
+  }
+  list(
+    sample = sample,
+    poststrat = poststrat,
+    true_popn = true_popn
+  )
+}
+
+# Importing the data. 
+sample <- read_csv(here::here("data", "sample.csv"))
+proststrat <- read_csv(here::here( "data", "poststrat.csv"))
+true_popn <- read_csv(here::here( "data", "true_popn.csv"))
+```
 
 This case study will use generated data. The data is broken up into
 three data tables: sample, post-stratification, and population. The
@@ -50,9 +178,44 @@ cell. Then we will use the post-stratification table to correctly weight
 the estimates for the whole population.
 
 We will use Bayesian hierarchical modeling to take advantage of partial
-pooling to account for empty cells.
+pooling to account for underweighted cells.
 
 ### McKenna’s logit model
+
+Our first model is a hierarchical logit model. A logit model is
+appropriate for our data because of the biniary outcome variable. The
+hierarchical model is group baised on the group assignments determined
+by the categorical variables in the data.
+
+``` stan
+data {
+  int<lower=1> D;
+  int<lower=0> N;
+  int<lower=1> L;
+  int<lower=0,upper=1> y[N];
+  int<lower=1,upper=L> ll[N];
+  matrix[N, D] x;
+}
+
+parameters {
+  real mu[D];
+  real<lower=0> sigma[D];
+  vector[D] beta[L];
+}
+
+model {
+  mu ~ normal(0, 100);
+  sigma ~ normal(0, 5);
+  for (l in 1:L) {
+    beta[l] ~ normal(mu, sigma);
+  }
+  for (n in 1:N) {
+    y[n] ~ bernoulli_logit((x[n,] * beta[ll[n]]));
+  }
+}
+```
+
+…THEN YOU CAN FIT.
 
 ``` r
 predictors <- sample %>% 
@@ -76,7 +239,72 @@ fit <- stan(
 )
 ```
 
-#### Downes logit model
+### Downes logit model
+
+BEFORE FITTING downes\_copy.stan INCLUDE IT HERE AND EXPLAIN THE MODEL…
+
+``` stan
+data {
+  int<lower=0> n;                                       // Number of survey participants
+  
+  int<lower=0> n_age;                                 // These are the number of categories
+  int<lower=0> n_eth;                                    // for each poststratification factor
+  int<lower=0> n_income;                                  // in the final model
+  int<lower=0> n_male;                                   
+  int<lower=0> n_state;                                 
+  
+  int<lower=0,upper=1> outcome[n];                      // observed outcome data, 1=Yes, 0=No
+  
+  int<lower=0,upper=n_age> age[n];                  // These are the variables containing
+  int<lower=0,upper=n_eth> eth[n];                        // the observed data for each
+  int<lower=0,upper=n_income> income[n];                    // poststratification factor in the 
+  int<lower=0,upper=n_male> male[n];                      // final model
+  int<lower=0,upper=n_state> state[n];      
+ }
+parameters {                                            // Model parameters to be estimated:
+  real b0;                                              // "intercept"
+  real a_age[n_age];                                // age varying coeffs (depart from linear fit)
+  real a_eth[n_eth];                                      // remoteness class varying coeffs 
+  real a_income[n_income];                                    // seifa ieo varying coeffs (depart linear fit)
+  real a_male[n_male];                                // english fluency varying coeffs
+  real a_state[n_state];                                  // occupation varying coeffs
+  real<lower=0> sigma_age;                            // age var(sd) component
+  real<lower=0> sigma_eth;                               // remoteness class var(sd) component
+  real<lower=0> sigma_income;                              // seifa ieo var(sd) component
+  real<lower=0> sigma_male;                            // english fluency var(sd) component
+  real<lower=0> sigma_state;                             // occupation var(sd) component
+}
+transformed parameters {                                // Model specification is here
+  vector[n] outcome_hat;
+  for (i in 1:n) {
+    outcome_hat[i] = b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]];
+  }
+}
+model {                                                 // Model distributions for varying coefficients
+  b0 ~ cauchy(0,2.5);                                   // and prior distributions for unmodelled                            // Can modify Cauchy scale parameter
+                                                        // Can also specify a uniform distribution here
+  a_age ~ normal(0, sigma_age);                     // or by setting upper and lower limits for
+  a_eth ~ normal(0, sigma_eth);                           // unmodelled parameters in the parameter step
+  a_income ~ normal(0, sigma_income);                         // above  
+  a_male ~ normal(0, sigma_male);                      
+  a_state ~ normal(0, sigma_state);
+  
+  sigma_age ~ cauchy(0,2.5);
+  sigma_eth ~ cauchy(0,2.5);
+  sigma_income ~ cauchy(0,2.5);
+  sigma_male ~ cauchy(0,2.5);
+  sigma_state ~ cauchy(0,2.5);
+  
+  outcome ~ bernoulli_logit(outcome_hat);               // For a continuous outcome, specify a
+                                                        // normal distribution with an additional
+                                                        // variance component, i.e.
+                                                        // outcome ~ normal(outcome_hat, sigma_outcome)
+                                                        // Note the prior distributions for 
+                                                        // unmodelled parameters will change.
+}
+```
+
+…THEN YOU CAN FIT.
 
 ``` r
 # Observations. 
@@ -104,7 +332,64 @@ fit <- stan(
 )
 ```
 
-#### Stan user guide logit model
+### Stan user guide logit model
+
+BEFORE FITTING stan\_mrp.stan INCLUDE IT HERE AND EXPLAIN THE MODEL…
+
+``` stan
+data {
+  int<lower = 0> N;
+  int<lower = 1, upper = 7> age[N];
+  int<lower = 1, upper = 3> income[N];
+  int<lower = 1, upper = 3> eth[N];
+  int<lower = 1, upper = 2> male[N];
+  int<lower = 1, upper = 50> state[N];
+  int<lower = 0> y[N];
+  int<lower = 0> P[7, 3, 3, 2, 50];
+}
+parameters {
+  real alpha;
+  real epsilon;
+  real<lower = 0> sigma_beta;
+  real<lower = 0> sigma_gamma;
+  real<lower = 0> sigma_delta;
+  real<lower = 0> sigma_rho;
+  vector<multiplier = sigma_beta>[7] beta;
+  vector<multiplier = sigma_gamma>[3] gamma;
+  vector<multiplier = sigma_delta>[3] delta;
+  vector<multiplier = sigma_rho>[50] rho;
+}
+model {
+  y ~ bernoulli_logit(alpha + beta[age] + gamma[income] + delta[eth] + {epsilon, -epsilon}[male] + rho[state]);
+  alpha ~ normal(0, 2);
+  epsilon ~ normal(0, 2);
+  sigma_beta ~ normal(0, 1);
+  sigma_gamma  ~ normal(0, 1);
+  sigma_delta ~ normal(0, 1);
+  sigma_rho ~ normal(0, 1);
+  beta ~ normal(0, sigma_beta);
+  gamma ~ normal(0, sigma_gamma);
+  delta ~ normal(0, sigma_delta);
+  rho ~ norma(0, sigma_rho);
+}
+generated quantities {
+  real expect_pos = 0;
+  int total = 0;
+  for (b in 1:7)
+    for (c in 1:3)
+      for (d in 1:3)
+        for (f in 1:2)
+          for (g in 1:50){
+        total += P[b, c, d, f, g];
+        expect_pos
+          += P[b, c, d, f, g]
+             * inv_logit(alpha + beta[b] + gamma[c] + delta[d] + {epsilon, -epsilon}[f] + rho[g]);
+      }
+  real<lower = 0, upper = 1> phi = expect_pos / total;
+}
+```
+
+…THEN YOU CAN FIT.
 
 ``` r
 stan_data <- list( 
@@ -130,11 +415,22 @@ fit <- stan(
 
 Post-stratification consists of taking the sum of the estimates of the
 model for each cell times the number of people in each cell divided by
-the total number of people. Using poststratificationcan immprove accracy
-of the estimates based on the information
-known.
+the total number of people. Using post-stratificatio ncan improve
+accuracy of the estimates based on the information known.
+
+IF YOU NEED TO INCLUDE THIS, WE WILL NEED SOMETHING IN THE YAML TO GET
+THIS WORK FOR A GITHUB\_DOCUMENT (MARC WILL FIGURE THAT OUT). AN
+ALTERNATIVE IS TO EXPRESS AS CODE INSTEAD OF
+MATH.
+
+THIS…
 
 \[\omega=\displaystyle\frac{\]*{j=1}^{J}*{j}\*N\_{j}\[}{\]*{j=1}^{J}N*{j}\[}\]
+
+OR…
+
+    something / something
+
 Post-stratification can be performed in stan using the generated
 quantities block.
 
@@ -158,5 +454,5 @@ generated quantities {
 
 ## Compare to Population
 
-Because we are using simulated data we can see how our poststratified
+Because we are using simulated data we can see how our post-stratified
 predictions compare to the true population.
