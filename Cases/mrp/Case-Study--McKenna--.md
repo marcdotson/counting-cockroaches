@@ -50,7 +50,10 @@ library(dplyr)
 library(tidyr)
 library(tidybayes)
 library(here)
+```
 
+``` r
+# I set this to eval = FALSE just for now because it wasn't knitting so I will have to come back and take a look at this.
 options(mc.cores = parallel::detectCores()) # Set Stan to use all available cores.
 rstan_options(auto_write = TRUE)            # Don't recompile Stan code that hasn't changed.
 
@@ -85,12 +88,9 @@ simulate_mrp_data <- function(n) {
   for (j in 1:prod(J)){
     poststrat$N[j] <- round(250e6 * p_male[poststrat[j,1]+1] * p_eth[poststrat[j,2]] *
       p_age[poststrat[j,3]]*p_income[poststrat[j,4]]*p_state[poststrat[j,5]]) 
-    
 #Adjust the N to be the number observed in each category in each group
   }
-
 # Now let's adjust for the probability of response
-  
   p_response_baseline <- 0.01
   p_response_male <- c(2, 0.8) / 2.8
   p_response_eth <- c(1, 1.2, 2.5) / 4.7
@@ -106,14 +106,12 @@ simulate_mrp_data <- function(n) {
       p_response_inc[poststrat[j, 4]] * p_response_state[poststrat[j, 5]]
   }
   people <- sample(prod(J), n, replace = TRUE, prob = poststrat$N * p_response)
-
   ## For respondent i, people[i] is that person's poststrat cell,
   ## some number between 1 and 32
   n_cell <- rep(NA, prod(J))
   for (j in 1:prod(J)) {
     n_cell[j] <- sum(people == j)
   }
-
   coef_male <- c(0,-0.3)
   coef_eth <- c(0, 0.6, 0.9)
   coef_age <- c(0,-0.2,-0.3, 0.4, 0.5, 0.7, 0.8, 0.9)
@@ -130,7 +128,6 @@ simulate_mrp_data <- function(n) {
         coef_age_male[poststrat[j, 1] + 1, poststrat[j, 3]]
       )
   }
-
 #male or not, eth, age, income level, state, city
   y <- rbinom(n, 1, true_popn$satisfaction[people])
   male <- poststrat[people, 1]
@@ -138,11 +135,9 @@ simulate_mrp_data <- function(n) {
   age <- poststrat[people, 3]
   income <- poststrat[people, 4]
   state <- poststrat[people, 5]
-
   sample <- data.frame(service_failure = y,
                        male, age, eth, income, state,
                        id = 1:length(people))
-
   #Make all numeric:
   for (i in 1:ncol(poststrat)) {
     poststrat[, i] <- as.numeric(poststrat[, i])
@@ -159,11 +154,66 @@ simulate_mrp_data <- function(n) {
     true_popn = true_popn
   )
 }
+```
 
+``` r
 # Importing the data. 
-sample <- read_csv(here::here("data", "sample.csv"))
-proststrat <- read_csv(here::here( "data", "poststrat.csv"))
-true_popn <- read_csv(here::here( "data", "true_popn.csv"))
+sample <- read_csv(here::here("Data", "sample.csv"))
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   service_failure = col_double(),
+    ##   male = col_double(),
+    ##   age = col_double(),
+    ##   eth = col_double(),
+    ##   income = col_double(),
+    ##   state = col_double(),
+    ##   id = col_double()
+    ## )
+
+``` r
+proststrat <- read_csv(here::here( "Data", "poststrat.csv"))
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   male = col_double(),
+    ##   eth = col_double(),
+    ##   age = col_double(),
+    ##   income = col_double(),
+    ##   state = col_double(),
+    ##   N = col_double()
+    ## )
+
+``` r
+true_popn <- read_csv(here::here( "Data", "true_popn.csv"))
+```
+
+    ## Parsed with column specification:
+    ## cols(
+    ##   male = col_double(),
+    ##   eth = col_double(),
+    ##   age = col_double(),
+    ##   income = col_double(),
+    ##   state = col_double(),
+    ##   service_failure = col_logical(),
+    ##   satisfaction = col_double()
+    ## )
+
+``` r
+# Add groups to data. 
+proststrat_group <- proststrat %>% 
+  mutate(group = row_number())
+
+sample_group <- left_join(sample,
+                          proststrat_group,
+                          by = c(
+                            "male" = "male", 
+                            "age" = "age", 
+                            "eth" = "eth", 
+                            "income" = "income",
+                            "state" = "state") )
 ```
 
 This case study will use generated data. The data is broken up into
@@ -218,15 +268,15 @@ model {
 …THEN YOU CAN FIT.
 
 ``` r
-predictors <- sample %>% 
+predictors <- sample_group %>% 
   select(male, age, eth, income, state)
 
 data_list <- list(
   D = 5,                                              # Number of variables. 
   N = 1200,                                           # Number of observations.
-  L = 5,                                              # Number of groups. 
-  y = sample$service_failure,                         # Outcome variables. 
-  ll = sample(5, 1200, replace = TRUE),               # Group assignment. 
+  L = 6300,                                           # Number of groups. 
+  y = sample_group$service_failure,                   # Outcome variables. 
+  ll = sample_group$group,                            # Group assignment. 
   x = predictors                                      # Matrix of predictors. 
 )
 ```
