@@ -156,12 +156,12 @@ Our first model is a hierarchical logit model. A logit model is appropriate for 
 
 ```{stan logit-hier, output.var="logit_hier", eval=FALSE}
 data {
-  int<lower=1> D;
-  int<lower=0> N;
-  int<lower=1> L;
-  int<lower=0,upper=1> y[N];
-  int<lower=1,upper=L> ll[N];
-  matrix[N, D] x;
+  int<lower=1> D;                // Number of variables.
+  int<lower=0> N;                // Number of observations.
+  int<lower=1> L;                // Number of groups.
+  int<lower=0,upper=1> y[N];     // Outcome variable. 
+  int<lower=1,upper=L> ll[N];    // Group assignment. 
+  matrix[N, D] x;                // Matrix of predictors. 
 }
 
 parameters {
@@ -205,54 +205,71 @@ fit <- stan(
   seed = 42 
 )
 ```
+```{r, eval = FALSE}
+posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
+
+?posterior_linpred
+
+poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
+
+model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
+
+round(model_popn_pref, 3)
+```
 
 ### Downes logit model 
 
-BEFORE FITTING downes_copy.stan INCLUDE IT HERE AND EXPLAIN THE MODEL...
+The data section of the Downes model not only specifies the individual predictor values but also the number of categories for each categorical variable. Each category is given a varying coefficient in the parameter section. 
+
+[Note to McKenna]
+Questions to answer: 
+Why cauchy?
+Actual model specification?
+Why varying coefficients?
 
 ```{stan downes, output.var="downes", eval=FALSE}
 data {
-  int<lower=0> n;                                       // Number of survey participants
+  int<lower=0> n;                                     // Number of survey participants
   
   int<lower=0> n_age;                                 // These are the number of categories
-  int<lower=0> n_eth;                                    // for each poststratification factor
-  int<lower=0> n_income;                                  // in the final model
+  int<lower=0> n_eth;                                 // for each poststratification factor
+  int<lower=0> n_income;                              // in the final model
   int<lower=0> n_male;                                   
   int<lower=0> n_state;                                 
   
-  int<lower=0,upper=1> outcome[n];                      // observed outcome data, 1=Yes, 0=No
+  int<lower=0,upper=1> outcome[n];                    // observed outcome data, 1=Yes, 0=No
   
-  int<lower=0,upper=n_age> age[n];                  // These are the variables containing
-  int<lower=0,upper=n_eth> eth[n];                        // the observed data for each
-  int<lower=0,upper=n_income> income[n];                    // poststratification factor in the 
-  int<lower=0,upper=n_male> male[n];                      // final model
+  int<lower=0,upper=n_age> age[n];                    // These are the variables containing
+  int<lower=0,upper=n_eth> eth[n];                    // the observed data for each
+  int<lower=0,upper=n_income> income[n];              // poststratification factor in the 
+  int<lower=0,upper=n_male> male[n];                  // final model
   int<lower=0,upper=n_state> state[n];      
  }
-parameters {                                            // Model parameters to be estimated:
-  real b0;                                              // "intercept"
-  real a_age[n_age];                                // age varying coeffs (depart from linear fit)
-  real a_eth[n_eth];                                      // remoteness class varying coeffs 
-  real a_income[n_income];                                    // seifa ieo varying coeffs (depart linear fit)
-  real a_male[n_male];                                // english fluency varying coeffs
-  real a_state[n_state];                                  // occupation varying coeffs
+parameters {                                          // Model parameters to be estimated:
+  real b0;                                            // "intercept"
+  real a_age[n_age];                                  // age varying coeffs (depart from linear fit)
+  real a_eth[n_eth];                                  // ethnicity class varying coeffs 
+  real a_income[n_income];                            // income varying coeffs (depart linear fit)
+  real a_male[n_male];                                // gender varying coeffs
+  real a_state[n_state];                              // state varying coeffs
   real<lower=0> sigma_age;                            // age var(sd) component
-  real<lower=0> sigma_eth;                               // remoteness class var(sd) component
-  real<lower=0> sigma_income;                              // seifa ieo var(sd) component
-  real<lower=0> sigma_male;                            // english fluency var(sd) component
-  real<lower=0> sigma_state;                             // occupation var(sd) component
+  real<lower=0> sigma_eth;                            // ethnicit var(sd) component
+  real<lower=0> sigma_income;                         // income var(sd) component
+  real<lower=0> sigma_male;                           // gender fluency var(sd) component
+  real<lower=0> sigma_state;                          // state var(sd) component
 }
-transformed parameters {                                // Model specification is here
+transformed parameters {                              // Model specification is here
   vector[n] outcome_hat;
   for (i in 1:n) {
     outcome_hat[i] = b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]];
   }
 }
-model {                                                 // Model distributions for varying coefficients
-  b0 ~ cauchy(0,2.5);                                   // and prior distributions for unmodelled                            // Can modify Cauchy scale parameter
-                                                        // Can also specify a uniform distribution here
-  a_age ~ normal(0, sigma_age);                     // or by setting upper and lower limits for
-  a_eth ~ normal(0, sigma_eth);                           // unmodelled parameters in the parameter step
-  a_income ~ normal(0, sigma_income);                         // above  
+model {                                              // Model distributions for varying coefficients
+  b0 ~ cauchy(0,2.5);                                // and prior distributions for unmodelled                                                                // Can modify Cauchy scale parameter
+                                                     // Can also specify a uniform distribution here
+  a_age ~ normal(0, sigma_age);                      // or by setting upper and lower limits for
+  a_eth ~ normal(0, sigma_eth);                      // unmodelled parameters in the parameter step
+  a_income ~ normal(0, sigma_income);                // above  
   a_male ~ normal(0, sigma_male);                      
   a_state ~ normal(0, sigma_state);
   
@@ -262,12 +279,12 @@ model {                                                 // Model distributions f
   sigma_male ~ cauchy(0,2.5);
   sigma_state ~ cauchy(0,2.5);
   
-  outcome ~ bernoulli_logit(outcome_hat);               // For a continuous outcome, specify a
-                                                        // normal distribution with an additional
-                                                        // variance component, i.e.
-                                                        // outcome ~ normal(outcome_hat, sigma_outcome)
-                                                        // Note the prior distributions for 
-                                                        // unmodelled parameters will change.
+  outcome ~ bernoulli_logit(outcome_hat);            // For a continuous outcome, specify a
+                                                     // normal distribution with an additional
+                                                     // variance component, i.e.
+                                                     // outcome ~ normal(outcome_hat, sigma_outcome)
+                                                     // Note the prior distributions for 
+                                                     // unmodelled parameters will change.
 }
 ```
 
@@ -301,7 +318,11 @@ fit <- stan(
 
 ### Stan user guide logit model 
 
-BEFORE FITTING stan_mrp.stan INCLUDE IT HERE AND EXPLAIN THE MODEL...
+The data for the Stan User Guide model is specified with lower and upper bounds on the data for the number of categories for each variable. In this stan model, post-stratification takes place in the generated quantities section. 
+
+[Note to McKenna]
+Questions to answer: 
+What the epsilon, -epsilon is that?
 
 ```{stan stan-mrp, output.var="stan_mrp", eval=FALSE}
 data {
