@@ -1,25 +1,25 @@
 Case Study (McKenna)
 ================
-McKenna Weech
+McKenna Weech, Hannah Thompson
 3/10/2020
 
 Multi-level regression and post-stratification helps to infer treatment
 size for a whole population from a non-representative sample. Using
 population knowledge sample are classified into cells based off of
 chosen classification variables. Hierarchical Bayesian models are used
-to infer(?) treatment within cells and population knowlege is used to
+to infer(?) treatment within cells and population knowledge is used to
 weight each cell according to their prevalence within the total
 population.
 
 ## Data
 
 Categorical classification variables are chosen and cell are assigned
-baised off of category classification. For example, if one variable is
+based off of category classification. For example, if one variable is
 gender consisting of two categories (male and other) and one variable is
 age consisting of two categories (0-50 and 50-100) then there would be
 four cells: male 0-50, male 50-100, other 0-50, and other 50-100.
 
-In this case study there are five classification variables choosen: age,
+In this case study there are five classification variables chosen: age,
 income, ethnicity, gender, and state. Each variable is transformed into
 categorical variables with age having seven categories, income having
 three, ethnicity having three, gender having two, and state have 50
@@ -200,7 +200,7 @@ the total number of
 people
 
 \[\omega=\displaystyle\frac{\]*{j=1}^{J}*{j}\*N\_{j}\[}{\]*{j=1}^{J}N*{j}\[}\]
-Post-stratification can be performed in stan using the generated
+Post-stratification can be performed in Stan using the generated
 quantities block.
 
 ``` r
@@ -223,5 +223,5 @@ generated quantities {
 
 ## Compare to Population
 
-Because we are using simulated data we can see how our poststratified
+Because we are using simulated data we can see how our Post-Stratified
 predictions compare to the true population.

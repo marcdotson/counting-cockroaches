@@ -1,17 +1,17 @@
 ---
 title: "Case Study (McKenna)"
-author: "McKenna Weech"
+author: "McKenna Weech, Hannah Thompson"
 date: "3/10/2020"
 output: github_document
 ---
 
-Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge sample are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowlege is used to weight each cell according to their prevalence within the total population.
+Multi-level regression and post-stratification helps to infer treatment size for a whole population from a non-representative sample. Using population knowledge sample are classified into cells based off of chosen classification variables. Hierarchical Bayesian models are used to infer(?) treatment within cells and population knowledge is used to weight each cell according to their prevalence within the total population.
 
 ## Data 
 
-Categorical classification variables are chosen and cell are assigned baised off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one variable is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100. 
+Categorical classification variables are chosen and cell are assigned based off of category classification. For example, if one variable is gender consisting of two categories (male and other) and one variable is age consisting of two categories (0-50 and 50-100) then there would be four cells: male 0-50, male 50-100, other 0-50, and other 50-100. 
 
-In this case study there are five classification variables choosen: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
+In this case study there are five classification variables chosen: age, income, ethnicity, gender, and state. Each variable is transformed into categorical variables with age having seven categories, income having three, ethnicity having three, gender having two, and state have 50 making the total number of cells 6,300  (7 x 3 x 3 x 2 x 50 = 6300). 
 
 Data is generated using a function from...(find reference).
 
@@ -81,7 +81,7 @@ simulate_mrp_data <- function(n) {
   }
   people <- sample(prod(J), n, replace = TRUE, prob = poststrat$N * p_response)
 
-  ## For respondent i, people[i] is that person's poststrat cell,
+  ## For respondent i, people[i] is that person's post-strat cell,
   ## some number between 1 and 32
   n_cell <- rep(NA, prod(J))
   for (j in 1:prod(J)) {
@@ -199,12 +199,12 @@ for(i in 1:length(levels(as.factor(poststrat$state)))) {
     newdata = as.data.frame(poststrat_state)
   )
   poststrat_prob_state <- (posterior_prob_state %*% poststrat_state$N) / sum(poststrat_state$N)
-  #This is the estimate for popn in state:
+  #This is the estimate for pop in state:
   state_df$model_state_pref[i] <- round(mean(poststrat_prob_state), 4)
   state_df$model_state_sd[i] <- round(sd(poststrat_prob_state), 4)
   #This is the estimate for sample
   state_df$sample_state_pref[i] <- round(mean(sample$cat_pref[sample$state == i]), 4)
-  #And what is the actual popn?
+  #And what is the actual pop?
   state_df$true_state_pref[i] <-
     round(sum(true_popn$cat_pref[true_popn$state == i] * poststrat_state$N) /
             sum(poststrat_state$N), digits = 4)
@@ -299,10 +299,10 @@ fit <- stan(
 
 ## Postratification 
 
-Postratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people
+Post-Stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people
 
 $$\omega=\displaystyle\frac{$$\sum_{j=1}^{J}\beta_{j}*N_{j}$$}{$$\sum_{j=1}^{J}N_{j}$$}$$
-Postratification can be performed in stan using the generated quantities block.
+Post-Stratification can be performed in Stan using the generated quantities block.
 
 ```{r, eval = FALSE}
 generated quantities {
@@ -323,4 +323,4 @@ generated quantities {
 ```
 
 ## Compare to Population 
-Because we are using simulated data we can see how our poststratified predictions compare to the true population 
+Because we are using simulated data we can see how our Post-Stratified predictions compare to the true population 
