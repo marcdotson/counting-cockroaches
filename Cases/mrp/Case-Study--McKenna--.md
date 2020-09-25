@@ -290,9 +290,27 @@ fit <- stan(
 ```
 
 ``` r
-posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
+# I think we will need to use a for loop like they do in the downes model to construct our predictions into a format that we can then postratify them. I got this for loop from the downes code and I have just begun to adjust it for our model. 
+ n_sim <- (n_iter * n_chain)/2   # They set the chains in their code but I don't think we did for our model so we'll have to take a look and see how to convert this 
+n_pscell <- length(poststrat$N) # (n_pscell is the number of poststratification cells defined by the model)
+n_state <- max(poststrat$STATE)
+stanfit_final_ypred <- array(NA, c(n_sim, n_pscell))
 
-?posterior_linpred
+for(l in 1:n_pscell){
+    stanfit_final_ypred[,l] <- invlogit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then postratify. 
+                                        )
+    
+stanfit_final_ps <- c(NA, n_sim)
+  
+# THEN WE CAN FINALY POSTSTRATIFY....I think 
+for(s in 1:n_sim){
+    stanfit_final_ps[s] <- sum(poststrat$N*stanfit_final_ypred[s,])/sum(poststrat$N)
+  }
+  
+
+
+# This is just some other code that I am working on to try and look at a different way to post. I think this mainly comes from the original case study from Lauren. 
+posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
 
 poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
 
@@ -309,7 +327,8 @@ variable. Each category is given a varying coefficient in the parameter
 section.
 
 \[Note to McKenna\] Questions to answer: Why cauchy? Actual model
-specification? Why varying coefficients?
+specification? - looks like the model is specified in the transformed
+parameters section. why? Why varying coefficients?
 
 ``` stan
 data {
@@ -342,12 +361,12 @@ parameters {                                          // Model parameters to be 
   real<lower=0> sigma_male;                           // gender fluency var(sd) component
   real<lower=0> sigma_state;                          // state var(sd) component
 }
-transformed parameters {                              // Model specification is here
-  vector[n] outcome_hat;
-  for (i in 1:n) {
-    outcome_hat[i] = b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]];
-  }
-}
+// transformed parameters {                              // Model specification is here
+//   vector[n] outcome_hat;
+//   for (i in 1:n) {
+//    outcome_hat[i] = b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]];
+//   }
+// }
 model {                                              // Model distributions for varying coefficients
   b0 ~ cauchy(0,2.5);                                // and prior distributions for unmodelled                                                                // Can modify Cauchy scale parameter
                                                      // Can also specify a uniform distribution here
@@ -363,7 +382,11 @@ model {                                              // Model distributions for 
   sigma_male ~ cauchy(0,2.5);
   sigma_state ~ cauchy(0,2.5);
   
-  outcome ~ bernoulli_logit(outcome_hat);            // For a continuous outcome, specify a
+  for (i in 1:n) {
+   outcome[i] = bernoulli_logit(b0 + a_age[age[i]] + a_eth[eth[i]] + a_income[income[i]] + a_male[male[i]] + a_state[state[i]]);
+  }
+  
+//  outcome ~ bernoulli_logit(outcome_hat);            // For a continuous outcome, specify a
                                                      // normal distribution with an additional
                                                      // variance component, i.e.
                                                      // outcome ~ normal(outcome_hat, sigma_outcome)
@@ -494,8 +517,7 @@ accuracy of the estimates based on the information known.
 
 IF YOU NEED TO INCLUDE THIS, WE WILL NEED SOMETHING IN THE YAML TO GET
 THIS WORK FOR A GITHUB\_DOCUMENT (MARC WILL FIGURE THAT OUT). AN
-ALTERNATIVE IS TO EXPRESS AS CODE INSTEAD OF
-MATH.
+ALTERNATIVE IS TO EXPRESS AS CODE INSTEAD OF MATH.
 
 THIS…
 
