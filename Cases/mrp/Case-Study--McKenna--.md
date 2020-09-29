@@ -310,13 +310,47 @@ for(s in 1:n_sim){
 
 
 # This is just some other code that I am working on to try and look at a different way to post. I think this mainly comes from the original case study from Lauren. 
+
+
 posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
-
 poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
-
 model_popn_pref <- c(mean = mean(poststrat_prob), sd = sd(poststrat_prob))
-
 round(model_popn_pref, 3)
+
+true_popn_pref <- sum(true_popn$satisfaction * poststrat$N) / sum(poststrat$N)
+round(true_popn_pref, 3)
+
+state_df <- data.frame(
+  State = 1:50,
+  model_state_sd = rep(-1, 50),
+  model_state_pref = rep(-1, 50),
+  sample_state_pref = rep(-1, 50),
+  true_state_pref = rep(-1, 50),
+  N = rep(-1, 50)
+)
+
+for(i in 1:length(levels(as.factor(poststrat$state)))) {
+  poststrat_state <- poststrat[poststrat$state == i, ]
+    posterior_prob_state <- posterior_linpred(
+    fit,
+    transform = TRUE,
+    draws = 1000,
+    newdata = as.data.frame(poststrat_state)
+  )
+  poststrat_prob_state <- (posterior_prob_state %*% poststrat_state$N) / sum(poststrat_state$N)
+  #This is the estimate for pop in state:
+  state_df$model_state_pref[i] <- round(mean(poststrat_prob_state), 4)
+  state_df$model_state_sd[i] <- round(sd(poststrat_prob_state), 4)
+  #This is the estimate for sample
+  state_df$sample_state_pref[i] <- round(mean(sample$cat_pref[sample$state == i]), 4)
+  #And what is the actual pop?
+  state_df$true_state_pref[i] <-
+    round(sum(true_popn$cat_pref[true_popn$state == i] * poststrat_state$N) /
+            sum(poststrat_state$N), digits = 4)
+  state_df$N[i] <- length(sample$satisfaction[sample$state == i])
+}
+
+state_df[c(1,3:6)]
 ```
 
 ### Downes logit model
