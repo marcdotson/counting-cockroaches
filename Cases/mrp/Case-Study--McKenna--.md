@@ -173,7 +173,7 @@ sample <- read_csv(here::here("Data", "sample.csv"))
     ## )
 
 ``` r
-proststrat <- read_csv(here::here( "Data", "poststrat.csv"))
+poststrat <- read_csv(here::here( "Data", "poststrat.csv"))
 ```
 
     ## Parsed with column specification:
@@ -203,11 +203,11 @@ true_popn <- read_csv(here::here( "Data", "true_popn.csv"))
 
 ``` r
 # Add groups to data. 
-proststrat_group <- proststrat %>% 
+poststrat_group <- poststrat %>% 
   mutate(group = row_number())
 
 sample_group <- left_join(sample,
-                          proststrat_group,
+                          poststrat_group,
                           by = c(
                             "male" = "male", 
                             "age" = "age", 
@@ -228,7 +228,7 @@ cell. Then we will use the post-stratification table to correctly weight
 the estimates for the whole population.
 
 We will use Bayesian hierarchical modeling to take advantage of partial
-pooling to account for underweighted cells.
+pooling to account for underweight cells.
 
 ### McKenna’s logit model
 
@@ -297,7 +297,7 @@ n_state <- max(poststrat$STATE)
 stanfit_final_ypred <- array(NA, c(n_sim, n_pscell))
 
 for(l in 1:n_pscell){
-    stanfit_final_ypred[,l] <- invlogit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then postratify. 
+    stanfit_final_ypred[,l] <- bernoulli_logit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then postratify. 
                                         )
     
 stanfit_final_ps <- c(NA, n_sim)

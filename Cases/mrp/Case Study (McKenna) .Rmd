@@ -137,15 +137,15 @@ simulate_mrp_data <- function(n) {
 ```{r}
 # Importing the data. 
 sample <- read_csv(here::here("Data", "sample.csv"))
-proststrat <- read_csv(here::here( "Data", "poststrat.csv"))
+poststrat <- read_csv(here::here( "Data", "poststrat.csv"))
 true_popn <- read_csv(here::here( "Data", "true_popn.csv"))
 
 # Add groups to data. 
-proststrat_group <- proststrat %>% 
+poststrat_group <- poststrat %>% 
   mutate(group = row_number())
 
 sample_group <- left_join(sample,
-                          proststrat_group,
+                          poststrat_group,
                           by = c(
                             "male" = "male", 
                             "age" = "age", 
@@ -158,7 +158,7 @@ This case study will use generated data. The data is broken up into three data t
 
 First we will build a model to generate parameter estimates for each cell. Then we will use the post-stratification table to correctly weight the estimates for the whole population. 
 
-We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for underweighted cells.
+We will use Bayesian hierarchical modeling to take advantage of partial pooling to account for underweight cells.
 
 ### McKenna's logit model
 
@@ -216,9 +216,27 @@ fit <- stan(
 )
 ```
 ```{r, eval = FALSE}
-posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
+# I think we will need to use a for loop like they do in the downes model to construct our predictions into a format that we can then postratify them. I got this for loop from the downes code and I have just begun to adjust it for our model. 
+ n_sim <- (n_iter * n_chain)/2   # They set the chains in their code but I don't think we did for our model so we'll have to take a look and see how to convert this 
+n_pscell <- length(poststrat$N) # (n_pscell is the number of poststratification cells defined by the model)
+n_state <- max(poststrat$STATE)
+stanfit_final_ypred <- array(NA, c(n_sim, n_pscell))
 
-?posterior_linpred
+for(l in 1:n_pscell){
+    stanfit_final_ypred[,l] <- bernoulli_logit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then postratify. 
+                                        )
+    
+stanfit_final_ps <- c(NA, n_sim)
+  
+# THEN WE CAN FINALY POSTSTRATIFY....I think 
+for(s in 1:n_sim){
+    stanfit_final_ps[s] <- sum(poststrat$N*stanfit_final_ypred[s,])/sum(poststrat$N)
+  }
+  
+
+
+# This is just some other code that I am working on to try and look at a different way to post. I think this mainly comes from the original case study from Lauren. 
+posterior_prob <- posterior_linpred(fit, transform = TRUE, newdata = poststrat)
 
 poststrat_prob <- posterior_prob %*% poststrat$N / sum(poststrat$N)
 
