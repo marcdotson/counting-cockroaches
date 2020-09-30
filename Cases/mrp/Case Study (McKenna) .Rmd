@@ -31,7 +31,6 @@ library(here)
 ```
 
 ```{r, eval = FALSE}
-# I set this to eval = FALSE just for now because it wasn't knitting so I will have to come back and take a look at this.
 options(mc.cores = parallel::detectCores()) # Set Stan to use all available cores.
 rstan_options(auto_write = TRUE)            # Don't recompile Stan code that hasn't changed.
 
@@ -135,7 +134,7 @@ simulate_mrp_data <- function(n) {
 ```
 
 ```{r}
-# Importing the data. 
+# Importing the data, will see it exported in environment 
 sample <- read_csv(here::here("Data", "sample.csv"))
 poststrat <- read_csv(here::here( "Data", "poststrat.csv"))
 true_popn <- read_csv(here::here( "Data", "true_popn.csv"))
@@ -162,7 +161,7 @@ We will use Bayesian hierarchical modeling to take advantage of partial pooling 
 
 ### McKenna's logit model
 
-Our first model is a hierarchical logit model. A logit model is appropriate for our data because of the biniary outcome variable. The hierarchical model is group baised on the group assignments determined by the categorical variables in the data. 
+Our first model is a hierarchical logit model. A logit model is appropriate for our data because of the binary outcome variable. The hierarchical model is group based on the group assignments determined by the categorical variables in the data. 
 
 ```{stan logit-hier, output.var="logit_hier", eval=FALSE}
 data {
@@ -192,7 +191,6 @@ model {
 }
 ```
 
-...THEN YOU CAN FIT.
 
 ```{r}
 predictors <- sample_group %>% 
@@ -215,15 +213,18 @@ fit <- stan(
   seed = 42 
 )
 ```
+
+
+
 ```{r, eval = FALSE}
-# I think we will need to use a for loop like they do in the downes model to construct our predictions into a format that we can then postratify them. I got this for loop from the downes code and I have just begun to adjust it for our model. 
+# I think we will need to use a for loop like they do in the downes model to construct our predictions into a format that we can then post-stratify them. I got this for loop from the downes code and I have just begun to adjust it for our model. 
  n_sim <- (n_iter * n_chain)/2   # They set the chains in their code but I don't think we did for our model so we'll have to take a look and see how to convert this 
-n_pscell <- length(poststrat$N) # (n_pscell is the number of poststratification cells defined by the model)
+n_pscell <- length(poststrat$N) # (n_pscell is the number of post-stratification cells defined by the model)
 n_state <- max(poststrat$STATE)
 stanfit_final_ypred <- array(NA, c(n_sim, n_pscell))
 
 for(l in 1:n_pscell){
-    stanfit_final_ypred[,l] <- bernoulli_logit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then postratify. 
+    stanfit_final_ypred[,l] <- bernoulli_logit((x[n,] * beta[ll[n]])  # This is the part I am confused the most on. Just trying to specify the model in the right way to be able to make the service failure assumptions to then post-stratify. 
                                         )
     
 stanfit_final_ps <- c(NA, n_sim)
@@ -233,6 +234,11 @@ for(s in 1:n_sim){
     stanfit_final_ps[s] <- sum(poststrat$N*stanfit_final_ypred[s,])/sum(poststrat$N)
   }
   
+
+
+
+
+
 
 
 # This is just some other code that I am working on to try and look at a different way to post. I think this mainly comes from the original case study from Lauren. 
@@ -283,6 +289,10 @@ state_df[c(1,3:6)]
 
 The data section of the Downes model not only specifies the individual predictor values but also the number of categories for each categorical variable. Each category is given a varying coefficient in the parameter section. 
 
+
+
+
+
 [Note to McKenna]
 Questions to answer: 
 Why cauchy?
@@ -327,10 +337,10 @@ parameters {                                          // Model parameters to be 
 //   }
 // }
 model {                                              // Model distributions for varying coefficients
-  b0 ~ cauchy(0,2.5);                                // and prior distributions for unmodelled                                                                // Can modify Cauchy scale parameter
+  b0 ~ cauchy(0,2.5);                                // and prior distributions for unmodeled                                                                // Can modify Cauchy scale parameter
                                                      // Can also specify a uniform distribution here
   a_age ~ normal(0, sigma_age);                      // or by setting upper and lower limits for
-  a_eth ~ normal(0, sigma_eth);                      // unmodelled parameters in the parameter step
+  a_eth ~ normal(0, sigma_eth);                      // unmodeled parameters in the parameter step
   a_income ~ normal(0, sigma_income);                // above  
   a_male ~ normal(0, sigma_male);                      
   a_state ~ normal(0, sigma_state);
@@ -350,7 +360,7 @@ model {                                              // Model distributions for 
                                                      // variance component, i.e.
                                                      // outcome ~ normal(outcome_hat, sigma_outcome)
                                                      // Note the prior distributions for 
-                                                     // unmodelled parameters will change.
+                                                     // unmodeled parameters will change.
 }
 ```
 
@@ -471,7 +481,7 @@ fit <- stan(
 
 ## Post-Stratification
 
-Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people. Using post-stratificatio ncan improve accuracy of the estimates based on the information known.
+Post-stratification consists of taking the sum of the estimates of the model for each cell times the number of people in each cell divided by the total number of people. Using post-stratification can improve accuracy of the estimates based on the information known.
 
 IF YOU NEED TO INCLUDE THIS, WE WILL NEED SOMETHING IN THE YAML TO GET THIS WORK FOR A GITHUB_DOCUMENT (MARC WILL FIGURE THAT OUT). AN ALTERNATIVE IS TO EXPRESS AS CODE INSTEAD OF MATH.
 
