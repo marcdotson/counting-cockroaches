@@ -16,6 +16,7 @@ In this case study there are three classification variables: age, ethnicity, and
 Data is generated using a function used in case study (noted in references).
 
 ## Model
+# Here we are loading the packages needed to run our model 
 
 ```{r load-data, message=FALSE}
 library(tidyverse) #Load packages
@@ -28,6 +29,7 @@ library(dplyr)
 library(tidyr)
 library(tidybayes)
 library(here)
+options(mc.cores = parallel::detectCores())
 ```
 
 
@@ -36,7 +38,7 @@ simulate_mrp_data <- function(n) {
   J <- c(2, 3, 7) # male or not, eth, age
   # poststrat <- as.data.frame(array(NA, c(prod(J), length(J)+1))) 
   poststrat <- as.data.frame(array(NA, c(prod(J), length(J)))) 
-  # Columns of post-strat matrix, plus one for size
+  # Columns of post-strat matrix with the various variables that we will be using
   colnames(poststrat) <- c("male", "eth", "age")
   count <- 0
   for (i1 in 1:J[1]){
@@ -48,7 +50,7 @@ simulate_mrp_data <- function(n) {
           }
         }
       }
-  # Proportion in each sample in the population
+  # Proportion in each sample in the population, we cut down the proportions in this, you can adjust them based on how many you would like in each category
   p_male <- c(0.52, 0.48)
   p_eth <- c(0.2, 0.3, 0.5)
   p_age <- c(0.1, 0.1, 0.2, 0.2, 0.1, 0.1, 0.2)
@@ -190,6 +192,8 @@ data_list <- list(
 fit <- stan(
   file = here::here("Code", "mrp", "logit_hier.stan"),
   data = data_list,
+  iter = 2000,
+  thin = 2,
   seed = 42 
 )
 ```
